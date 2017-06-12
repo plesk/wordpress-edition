@@ -25,7 +25,7 @@ fail2ban=yes
 
 #Plesk Activation Code - provide proper license for initialization, it will be replaced after cloning
 #leave as null if not providing key
-activation_key=A00A00-YV8Q04-FF0X12-B45Y31-MVF280
+activation_key=<put your activation code here>
 #Turn on http2
 http2=yes
 
