@@ -87,11 +87,11 @@ fi
 if [ "$pleskui" = "spv" ]; then
     echo "Setting to Service Provider View"
     plesk bin poweruser --off
-    echo "  "
+    echo
 else
     echo "Setting to Power user View"
     plesk bin poweruser --on
-    echo "  "
+    echo
 fi
 
 # Make sure Plesk UI and Plesk Update ports are allowed
