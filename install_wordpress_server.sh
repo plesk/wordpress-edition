@@ -1,30 +1,28 @@
 #!/bin/bash
 
-# Plesk 
-# Edit variables for Plesk Initialization
+################################################################################
+##          Installation script for Plesk WordPress Server                    ##
+################################################################################
 
-hostname=cp.domain.tst
+# Edit variables for Plesk pre-configuration
+
+hostname='cp.domain.tst'
 email='admin@test.tst'
-passwd=CookBook123
-name=admin
-company=Cookbook
-phone=123-123-1234
-address=123_street
-city=NY
-state=NY
-zip=12345
-country=US
+passwd='CookBook123'
+name='admin'
+company='Plesk Sample Company'
+phone='123-123-1234'
+address='123_street'
+city='NY'
+state='NY'
+zip='12345'
+country='US'
 agreement=true
 ip_type=shared
 
-# Test to make sure all Initialization Values are set
-if [[ -z $hostname || -z $email || -z $passwd || -z $name || -z $company || -z $phone || -z $address || -z $city || -z $state || -z $zip || -z $country || -z $agreement || -z $ip_type ]]; then
-  echo 'One or more variables are undefined. Please check your Initialization Values'
-  exit 1
-fi
-
-echo "Plesk Initialization Values are all assigned. We are good so far."
-echo 
+# Plesk Activation Code - provide proper license for initialization, it will be replaced after cloning
+# leave as null if not providing key
+activation_key=
 
 # Plesk UI View - can be set to Service Provider View (spv) or Power User View (puv)
 plesk_ui=puv
@@ -32,18 +30,23 @@ plesk_ui=puv
 # Turn on Fail2Ban, yes or no, Keep in mind you need to provide temp license for initialization for this to work
 fail2ban=yes
 
-# Plesk Activation Code - provide proper license for initialization, it will be replaced after cloning
-# leave as null if not providing key
+# Turn on http2
+http2=yes
 
-activation_key=
+# Test to make sure all initialization values are set
 
 if [[ -z $activation_key ]]; then
-echo 'Please provide a proper Bundle License for proper initialization.'
+echo 'Please provide a proper Plesk Activation Code (Bundle License).'
   exit 1
 fi
 
-# Turn on http2
-http2=yes
+if [[ -z $hostname || -z $email || -z $passwd || -z $name || -z $company || -z $phone || -z $address || -z $city || -z $state || -z $zip || -z $country || -z $agreement || -z $ip_type ]]; then
+  echo 'One or more variables are undefined. Please check your initialization values.'
+  exit 1
+fi
+
+echo "Plesk initialization values are all assigned. We are good so far."
+echo
 
 ######### Do not edit below this line ###################
 #########################################################
@@ -75,15 +78,14 @@ echo
 
 # Install Plesk Activation Key if provided
 
-if [ “$activation_key” != “null” ]; then
-
-echo "Installing Plesk Activation Code"
-plesk bin license --install $activation_key
-echo
-
+if [[ -n "$activation_key" ]]; then
+  echo "Installing Plesk Activation Code"
+  plesk bin license --install $activation_key
+  echo
 fi
 
 # Configure Service Provider View On
+
 if [ "$pleskui" = "spv" ]; then
     echo "Setting to Service Provider View"
     plesk bin poweruser --off
@@ -97,54 +99,52 @@ fi
 # Make sure Plesk UI and Plesk Update ports are allowed
 
 echo "Setting Firewall to allow proper ports."
-iptables -I INPUT -p tcp --dport 8443 -j ACCEPT
-iptables -I INPUT -p tcp --dport 8447 -j ACCEPT
 iptables -I INPUT -p tcp --dport 21 -j ACCEPT
 iptables -I INPUT -p tcp --dport 22 -j ACCEPT
-iptables -I INPUT -p tcp --dport 80 -j ACCEPT
-iptables -I INPUT -p tcp --dport 443 -j ACCEPT
-iptables -I INPUT -p tcp --dport 8880 -j ACCEPT
 iptables -I INPUT -p tcp --dport 25 -j ACCEPT
-iptables -I INPUT -p tcp --dport 465 -j ACCEPT
-iptables -I INPUT -p tcp --dport 143 -j ACCEPT
-iptables -I INPUT -p tcp --dport 993 -j ACCEPT
+iptables -I INPUT -p tcp --dport 80 -j ACCEPT
 iptables -I INPUT -p tcp --dport 110 -j ACCEPT
+iptables -I INPUT -p tcp --dport 143 -j ACCEPT
+iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+iptables -I INPUT -p tcp --dport 465 -j ACCEPT
+iptables -I INPUT -p tcp --dport 993 -j ACCEPT
 iptables -I INPUT -p tcp --dport 995 -j ACCEPT
+iptables -I INPUT -p tcp --dport 8443 -j ACCEPT
+iptables -I INPUT -p tcp --dport 8447 -j ACCEPT
+iptables -I INPUT -p tcp --dport 8880 -j ACCEPT
 echo
 
 # Enable Modsecurity
 
 echo "Turning on Modsecurity WAF Rules"
 plesk sbin modsecurity_ctl --enable --enable-ruleset atomic
-echo 
+echo
 
 # Enable Fail2Ban and Jails
 
-if [ “$fail2ban” = “yes” ]; then
-
-echo "Configuring Fail2Ban and its Jails"
-plesk bin ip_ban --enable
-plesk bin ip_ban --enable-jails ssh
-plesk bin ip_ban --enable-jails recidive
-plesk bin ip_ban --enable-jails modsecurity
-plesk bin ip_ban --enable-jails plesk-proftpd
-plesk bin ip_ban --enable-jails plesk-postfix
-plesk bin ip_ban --enable-jails plesk-dovecot
-plesk bin ip_ban --enable-jails plesk-roundcube
-plesk bin ip_ban --enable-jails plesk-roundcube
-plesk bin ip_ban --enable-jails plesk-apache-badbot
-plesk bin ip_ban --enable-jails plesk-panel
-plesk bin ip_ban --enable-jails plesk-wordpress
-echo 
-
+if [ "$fail2ban" = "yes" ]; then
+  echo "Configuring Fail2Ban and its Jails"
+  plesk bin ip_ban --enable
+  plesk bin ip_ban --enable-jails ssh
+  plesk bin ip_ban --enable-jails recidive
+  plesk bin ip_ban --enable-jails modsecurity
+  plesk bin ip_ban --enable-jails plesk-proftpd
+  plesk bin ip_ban --enable-jails plesk-postfix
+  plesk bin ip_ban --enable-jails plesk-dovecot
+  plesk bin ip_ban --enable-jails plesk-roundcube
+  plesk bin ip_ban --enable-jails plesk-roundcube
+  plesk bin ip_ban --enable-jails plesk-apache-badbot
+  plesk bin ip_ban --enable-jails plesk-panel
+  plesk bin ip_ban --enable-jails plesk-wordpress
+  echo
 fi
 
 # Turn on http2
 
-if [ “$http2” = “yes” ]; then
-echo "Activating http2"
-/usr/sbin/plesk bin http2_pref --enable
-echo
+if [ "$http2" = "yes" ]; then
+  echo "Activating http2"
+  /usr/sbin/plesk bin http2_pref --enable
+  echo
 fi
 
 # Install Bundle Extensions
@@ -172,7 +172,7 @@ echo "Installing Plesk Migration Manager"
 plesk bin extension --install-url https://ext.plesk.com/packages/bebc4866-d171-45fb-91a6-4b139b8c9a1b-panel-migrator/download
 echo
 echo "Installing Welcome Extension"
-plesk bin extension --install-url https://github.com/plesk/wordpress-server/raw/master/ext-welcome-wp_v1.0.0-9.zip 
+plesk bin extension --install-url https://github.com/plesk/wordpress-server/raw/master/ext-welcome-wp_v1.0.0-9.zip
 echo
 
 
@@ -180,9 +180,9 @@ echo
 
 echo "Setting Plesk Cloning feature."
 plesk bin cloning --update -prepare-public-image true
-echo "Plesk Initialization will be wiped on next boot. Ready for Cloning."
+echo "Plesk initialization will be wiped on next boot. Ready for Cloning."
 echo
-echo "Your WordPress Bundle Image is complete."
+echo "Your Plesk WordPress Server image is complete."
 echo "Thank you for using the WordPress Server Cookbook"
 echo
 echo
