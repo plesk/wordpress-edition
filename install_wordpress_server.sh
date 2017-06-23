@@ -71,12 +71,14 @@ echo
 echo
 
 # Initalize Plesk before Additional Configuration
+# https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/init_conf-server-configuration.37843/
 
 echo "Starting initialization process of your Plesk server"
 plesk bin init_conf --init -email $email -passwd $passwd -company $company -name $name -phone $phone -address $address -city $city -state $state -zip $zip -country $country -license_agreed $agreement -ip-type $ip_type
 echo
 
 # Install Plesk Activation Key if provided
+# https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/license-license-keys.71029/
 
 if [[ -n "$activation_key" ]]; then
   echo "Installing Plesk Activation Code"
@@ -115,12 +117,14 @@ iptables -I INPUT -p tcp --dport 8880 -j ACCEPT
 echo
 
 # Enable Modsecurity
+# https://docs.plesk.com/en-US/onyx/administrator-guide/server-administration/web-application-firewall-modsecurity.73383/
 
 echo "Turning on Modsecurity WAF Rules"
 plesk sbin modsecurity_ctl --enable --enable-ruleset atomic
 echo
 
 # Enable Fail2Ban and Jails
+# https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/ip_ban-ip-address-banning-fail2ban.73594/
 
 if [ "$fail2ban" = "yes" ]; then
   echo "Configuring Fail2Ban and its Jails"
@@ -140,6 +144,7 @@ if [ "$fail2ban" = "yes" ]; then
 fi
 
 # Turn on http2
+# https://docs.plesk.com/en-US/onyx/administrator-guide/web-servers/apache-and-nginx-web-servers-linux/http2-support-in-plesk.76461/
 
 if [ "$http2" = "yes" ]; then
   echo "Activating http2"
@@ -148,6 +153,7 @@ if [ "$http2" = "yes" ]; then
 fi
 
 # Install Bundle Extensions
+# https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/extension-extensions.71031/
 
 echo "Installing Requested Plesk Extensions"
 echo "Installing Route 53"
@@ -177,6 +183,7 @@ echo
 
 
 # Prepair for Cloning
+# https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/cloning-server-cloning-settings.71035/
 
 echo "Setting Plesk Cloning feature."
 plesk bin cloning --update -prepare-public-image true
