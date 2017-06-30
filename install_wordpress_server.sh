@@ -33,6 +33,9 @@ fail2ban=yes
 # Turn on http2
 http2=yes
 
+# Turn on Cloning - Set to "on" if this it to make a Golden Image, set to "off" if for remote installation
+clone=on
+
 # Test to make sure all initialization values are set
 
 if [[ -z $activation_key ]]; then
@@ -120,7 +123,7 @@ echo
 # https://docs.plesk.com/en-US/onyx/administrator-guide/server-administration/web-application-firewall-modsecurity.73383/
 
 echo "Turning on Modsecurity WAF Rules"
-plesk sbin modsecurity_ctl --enable --enable-ruleset atomic
+plesk bin server_pref --update-web-app-firewall -waf-rule-engine on -waf-rule-set tortix -waf-rule-set-update-period daily -waf-config-preset tradeoff
 echo
 
 # Enable Fail2Ban and Jails
@@ -185,9 +188,13 @@ echo
 # Prepair for Cloning
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/cloning-server-cloning-settings.71035/
 
-echo "Setting Plesk Cloning feature."
-plesk bin cloning --update -prepare-public-image true
-echo "Plesk initialization will be wiped on next boot. Ready for Cloning."
+
+if [ "$clone" = "on" ]; then
+	echo "Setting Plesk Cloning feature."
+	plesk bin cloning --update -prepare-public-image true
+	echo "Plesk initialization will be wiped on next boot. Ready for Cloning."
+fi
+
 echo
 echo "Your Plesk WordPress Server image is complete."
 echo "Thank you for using the WordPress Server Cookbook"
