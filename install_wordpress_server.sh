@@ -70,7 +70,7 @@ echo
 # Install Plesk with Required Components
 
 echo "Starting Plesk Installation"
-./plesk-installer install plesk --preset Full --with panel bind fail2ban l10n pmm mysqlgroup roundcube kav spamassassin postfix dovecot proftpd awstats modsecurity mod_fcgid webservers php7.1 php5.6 config-troubleshooter psa-firewall heavy-metal-skin wp-toolkit letsencrypt >> /tmp/plsklog
+./plesk-installer install plesk --preset Full --with panel bind fail2ban l10n pmm mysqlgroup roundcube kav spamassassin postfix dovecot proftpd awstats modsecurity mod_fcgid webservers php7.1 php5.6 config-troubleshooter psa-firewall heavy-metal-skin letsencrypt 
 echo
 echo
 
@@ -161,6 +161,9 @@ fi
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/extension-extensions.71031/
 
 echo "Installing Requested Plesk Extensions"
+echo
+echo "Installing WordPress Toolkit"
+plesk bin extension --install-url https://ext.plesk.com/packages/00d002a7-3252-4996-8a08-aa1c89cf29f7-wp-toolkit/download
 echo "Installing SEO Toolkit"
 plesk bin extension --install-url https://ext.plesk.com/packages/2ae9cd0b-bc5c-4464-a12d-bd882c651392-xovi/download
 echo
@@ -176,6 +179,8 @@ plesk bin extension --install-url https://ext.plesk.com/packages/52fd6315-22a4-4
 plesk bin extension --install-url https://ext.plesk.com/packages/8762049b-870e-47cb-ba14-9f055b99b508-s3-backup/download
 plesk bin extension --install-url https://ext.plesk.com/packages/a8e5ad9c-a254-4bcf-8ae4-5440f13a88ad-one-drive-backup/download
 echo
+echo "Installing Speed Kit"
+plesk bin extension --install-url https://ext.plesk.com/packages/11e1bf5f-a0df-48c6-8761-e890ff4e906c-baqend/download
 echo "Installing Revisium Antivirus for Websites"
 plesk bin extension --install-url https://ext.plesk.com/packages/b71916cf-614e-4b11-9644-a5fe82060aaf-revisium-antivirus/download
 echo
