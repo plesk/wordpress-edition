@@ -6,8 +6,6 @@
 * [-] Removed extensions no longer available in WordPress Server like Opsani or Addendino
 * [-] Removed Route 53 Extension
 
-
-
 # 1.0.1
 
 * [*] Updated link to the latest Welcome WordPress extension package (version 1.0.2)
