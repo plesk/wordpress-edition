@@ -14,6 +14,10 @@ This repository contains all you need to build and customize your personal preco
 
  * Contract with Plesk to be able to retrieve Plesk Licenses from the Key Administrator Server (KA)
  * Provide Plesk Key with Proper Plesk Exension keys associated in cookbook script
+
+ or
+
+  * A Plesk license with the [WordPress Feature Pack](https://ext.plesk.com/packages/f8afea30-b1e9-45f5-ab71-437a0ce7c817-offer-wordpress-feature-pack)
  
 ## Deploying Plesk with WordPress Server Cookbook
 
@@ -29,7 +33,7 @@ This repository contains all you need to build and customize your personal preco
 
 5. Execute command 
 
-   $ ./install_wordpress_server.sh
+   $ ./install_wordpress_server.sh <YOUR_ACTIVATION_KEY>
 
 ### Using prebuild Plesk Images
 
