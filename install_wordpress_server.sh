@@ -6,23 +6,16 @@
 
 # Edit variables for Plesk pre-configuration
 
-hostname='domain.tld'
-email='root@localhost'
-passwd='ChangeMe'
-name='Name'
-company='Plesk'
-phone='123-123-1234'
-address='123_street'
-city='NY'
-state='NY'
-zip='12345'
-country='US'
+hostname='cp.domain.tst'
+email='admin@test.tst'
+passwd='CookBook123'
+name='admin'
 agreement=true
 ip_type=shared
 
 # Plesk Activation Code - provide proper license for initialization, it will be replaced after cloning
 # leave as null if not providing key
-activation_key=
+activation_key=$1
 
 
 # Plesk UI View - can be set to Service Provider View (spv) or Power User View (puv)
@@ -35,7 +28,7 @@ fail2ban=yes
 http2=yes
 
 # Turn on Cloning - Set to "on" if this it to make a Golden Image, set to "off" if for remote installation
-clone=on
+clone=off
 
 # Test to make sure all initialization values are set
 
@@ -44,7 +37,7 @@ echo 'Please provide a proper Plesk Activation Code (Bundle License).'
   exit 1
 fi
 
-if [[ -z $hostname || -z $email || -z $passwd || -z $name || -z $company || -z $phone || -z $address || -z $city || -z $state || -z $zip || -z $country || -z $agreement || -z $ip_type ]]; then
+if [[ -z $hostname || -z $email || -z $passwd || -z $name || -z $agreement || -z $ip_type ]]; then
   echo 'One or more variables are undefined. Please check your initialization values.'
   exit 1
 fi
@@ -70,7 +63,7 @@ echo
 # Install Plesk with Required Components
 
 echo "Starting Plesk Installation"
-./plesk-installer install plesk --preset Full --with panel bind fail2ban l10n pmm mysqlgroup roundcube kav spamassassin postfix dovecot proftpd awstats modsecurity mod_fcgid webservers php7.1 php5.6 config-troubleshooter psa-firewall heavy-metal-skin letsencrypt 
+./plesk-installer install plesk --preset Recommended --with panel bind fail2ban l10n pmm mysqlgroup roundcube kav spamassassin postfix dovecot proftpd awstats modsecurity mod_fcgid webservers php7.2 php7.1 config-troubleshooter psa-firewall heavy-metal-skin letsencrypt 
 echo
 echo
 
@@ -78,8 +71,10 @@ echo
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/init_conf-server-configuration.37843/
 
 echo "Starting initialization process of your Plesk server"
-plesk bin init_conf --init -email $email -passwd $passwd -company $company -name $name -phone $phone -address $address -city $city -state $state -zip $zip -country $country -license_agreed $agreement -ip-type $ip_type
+plesk bin init_conf --init -email $email -passwd $passwd -name $name -hostname $hostname -license_agreed $agreement -ip-type $ip_type 
+plesk bin settings --set solution_type="wordpress"
 echo
+
 
 # Install Plesk Activation Key if provided
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/license-license-keys.71029/
@@ -192,6 +187,7 @@ plesk bin extension --install-url https://ext.plesk.com/packages/7d37cfde-f133-4
 echo
 echo "Installing Sucuri Site Scanner"
 plesk bin extension --install-url https://ext.plesk.com/packages/2d5b423b-9104-40f2-9286-a75a6debd43f-sucuri-scanner/download
+echo 
 echo "Installing LetsEncrypt"
 plesk bin extension --install-url https://ext.plesk.com/packages/f6847e61-33a7-4104-8dc9-d26a0183a8dd-letsencrypt/download
 echo
@@ -211,8 +207,11 @@ if [ "$clone" = "on" ]; then
 	echo "Setting Plesk Cloning feature."
 	plesk bin cloning --update -prepare-public-image true
 	echo "Plesk initialization will be wiped on next boot. Ready for Cloning."
+else
+  echo "Here is your login"
+  plesk login
 fi
-plesk bin settings --set solution_type="wordpress"
+
 echo
 echo "Your Plesk WordPress Server image is complete."
 echo "Thank you for using the WordPress Server Cookbook"
