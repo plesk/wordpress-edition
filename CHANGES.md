@@ -12,6 +12,8 @@
 * [-] Removed Route 53 Extension
 * [-] Removed no longer needed admin information
 
+
+
 # 1.0.1
 
 * [*] Updated link to the latest Welcome WordPress extension package (version 1.0.2)
