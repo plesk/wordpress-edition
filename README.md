@@ -1,6 +1,6 @@
 [![Apache 2](http://img.shields.io/badge/license-Apache%202-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-# Plesk WordPress Server Solution
+# Plesk WordPress Edition
 
 This repository contains all you need to build and customize your personal preconfigured WordPress Server solution with Plesk. The included whitepaper describes the solution in detail and highlights why you should offer it to your customers.
 
@@ -17,9 +17,9 @@ This repository contains all you need to build and customize your personal preco
 
  or
 
-  * A Plesk license with the [WordPress Feature Pack](https://ext.plesk.com/packages/f8afea30-b1e9-45f5-ab71-437a0ce7c817-offer-wordpress-feature-pack)
+  * A Plesk license with the [WordPress Pack](https://ext.plesk.com/packages/f8afea30-b1e9-45f5-ab71-437a0ce7c817-offer-wordpress-feature-pack)
  
-## Deploying Plesk with WordPress Server Cookbook
+## Deploying Plesk with WordPress Edition Cookbook
 
 1. Install one of the supported Linux Operating Systems ( https://docs.plesk.com/release-notes/onyx/hardware-requirements ) following hardware specs ( https://docs.plesk.com/release-notes/onyx/hardware-requirements/ )
 

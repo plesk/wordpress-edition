@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ################################################################################
-##          Installation script for Plesk WordPress Server                    ##
+##          Installation script for Plesk WordPress Edition                   ##
 ################################################################################
 
 # Edit variables for Plesk pre-configuration
@@ -213,7 +213,7 @@ else
 fi
 
 echo
-echo "Your Plesk WordPress Server image is complete."
-echo "Thank you for using the WordPress Server Cookbook"
+echo "Your Plesk WordPress Edition is complete."
+echo "Thank you for using the WordPress Edition Cookbook"
 echo
 echo
