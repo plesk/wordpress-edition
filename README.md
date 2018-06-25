@@ -25,15 +25,15 @@ This repository contains all you need to build and customize your personal preco
 
 2. Shell to server as root
 
-3. Download and Edit Variables noted in install_wordpress_server.sh
+3. Download and Edit Variables noted in install_wordpress_edition.sh
 
 4. Execute command 
 
-   $ chmod +x install install_wordpress_server.sh
+   $ chmod +x install install_wordpress_edition.sh
 
 5. Execute command 
 
-   $ ./install_wordpress_server.sh <YOUR_ACTIVATION_KEY>
+   $ ./install_wordpress_edition.sh <YOUR_ACTIVATION_KEY>
 
 ### Using prebuild Plesk Images
 
