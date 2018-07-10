@@ -195,7 +195,7 @@ echo "Installing Plesk Migration Manager"
 plesk bin extension --install-url https://ext.plesk.com/packages/bebc4866-d171-45fb-91a6-4b139b8c9a1b-panel-migrator/download
 echo
 echo "Installing Welcome Extension"
-plesk bin extension --install-url https://ext.plesk.com/packages/3771a7f4-77d3-4226-b4ef-92000bde9c84-welcome/download
+plesk bin extension --install-url https://ext.plesk.com/packages/39eb8f3d-0d9a-4605-a42a-c37ca5809415-welcome/download
 echo
 
 
