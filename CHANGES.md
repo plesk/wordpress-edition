@@ -1,3 +1,6 @@
+# 1.2
+* [*] Replaced old Welcome Extension with the new Welcome Guide
+
 # 1.1
 * [*] Updated the cookbook for the latest version of the WordPress Edition
 * [*] Replaced the Security Advisor with our new Advisor Extension
