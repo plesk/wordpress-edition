@@ -41,4 +41,4 @@ tbd
 
 ## Support
 
-tbd
+Found a bug or experienced an issue? Please open an [issue on Github](https://github.com/plesk/wordpress-edition/issues)!
