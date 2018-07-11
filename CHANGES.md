@@ -1,3 +1,7 @@
+# 1.2.1
+* [*] Fixed bug with plesk_ui
+* [*] Changed default plesk_ui to Service Provider View
+
 # 1.2
 * [*] Replaced old Welcome Extension with the new Welcome Guide
 
