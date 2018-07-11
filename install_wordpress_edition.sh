@@ -19,7 +19,7 @@ activation_key=$1
 
 
 # Plesk UI View - can be set to Service Provider View (spv) or Power User View (puv)
-plesk_ui=puv
+plesk_ui=spv
 
 # Turn on Fail2Ban, yes or no, Keep in mind you need to provide temp license for initialization for this to work
 fail2ban=yes
@@ -87,7 +87,7 @@ fi
 
 # Configure Service Provider View On
 
-if [ "$pleskui" = "spv" ]; then
+if [ "${pleskui}" = "spv" ]; then
     echo "Setting to Service Provider View"
     plesk bin poweruser --off
     echo
@@ -159,6 +159,7 @@ echo "Installing Requested Plesk Extensions"
 echo
 echo "Installing WordPress Toolkit"
 plesk bin extension --install-url https://ext.plesk.com/packages/00d002a7-3252-4996-8a08-aa1c89cf29f7-wp-toolkit/download
+echo
 echo "Installing SEO Toolkit"
 plesk bin extension --install-url https://ext.plesk.com/packages/2ae9cd0b-bc5c-4464-a12d-bd882c651392-xovi/download
 echo
@@ -176,6 +177,7 @@ plesk bin extension --install-url https://ext.plesk.com/packages/a8e5ad9c-a254-4
 echo
 echo "Installing Speed Kit"
 plesk bin extension --install-url https://ext.plesk.com/packages/11e1bf5f-a0df-48c6-8761-e890ff4e906c-baqend/download
+echo
 echo "Installing Revisium Antivirus for Websites"
 plesk bin extension --install-url https://ext.plesk.com/packages/b71916cf-614e-4b11-9644-a5fe82060aaf-revisium-antivirus/download
 echo
@@ -188,16 +190,20 @@ echo
 echo "Installing Sucuri Site Scanner"
 plesk bin extension --install-url https://ext.plesk.com/packages/2d5b423b-9104-40f2-9286-a75a6debd43f-sucuri-scanner/download
 echo 
-echo "Installing LetsEncrypt"
+echo "Installing Let's Encrypt"
 plesk bin extension --install-url https://ext.plesk.com/packages/f6847e61-33a7-4104-8dc9-d26a0183a8dd-letsencrypt/download
 echo
 echo "Installing Plesk Migration Manager"
 plesk bin extension --install-url https://ext.plesk.com/packages/bebc4866-d171-45fb-91a6-4b139b8c9a1b-panel-migrator/download
 echo
 echo "Installing Welcome Extension"
-plesk bin extension --install-url https://github.com/plesk/ext-welcome-wordpress/releases/download/v1.0.2/ext-welcome-wp_v1.0.2-11.zip
+plesk bin extension --install-url https://ext.plesk.com/packages/39eb8f3d-0d9a-4605-a42a-c37ca5809415-welcome/download
 echo
 
+
+echo "Enabling Welcome Guide for the Plesk WordPress Edition"
+plesk ext welcome --select -preset wordpress
+echo 
 
 # Prepair for Cloning
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/cloning-server-cloning-settings.71035/
