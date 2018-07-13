@@ -17,7 +17,6 @@ ip_type=shared
 # leave as null if not providing key
 activation_key=$1
 
-
 # Plesk UI View - can be set to Service Provider View (spv) or Power User View (puv)
 plesk_ui=spv
 
@@ -74,7 +73,6 @@ echo "Starting initialization process of your Plesk server"
 plesk bin init_conf --init -email $email -passwd $passwd -name $name -hostname $hostname -license_agreed $agreement -ip-type $ip_type
 plesk bin settings --set solution_type="wordpress"
 echo
-
 
 # Install Plesk Activation Key if provided
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/license-license-keys.71029/
@@ -196,13 +194,12 @@ echo
 echo "Installing Plesk Migration Manager"
 plesk bin extension --install-url https://ext.plesk.com/packages/bebc4866-d171-45fb-91a6-4b139b8c9a1b-panel-migrator/download
 echo
-echo "Installing DomainConnect"
+echo "Installing Domain Connect"
 plesk bin extension --install-url https://ext.plesk.com/packages/3a36f828-e477-4600-be33-48c21e351c9a-domain-connect/download
 echo
 echo "Installing Welcome Extension"
 plesk bin extension --install-url https://ext.plesk.com/packages/39eb8f3d-0d9a-4605-a42a-c37ca5809415-welcome/download
 echo
-
 
 echo "Enabling Welcome Guide for the Plesk WordPress Edition"
 plesk ext welcome --select -preset wordpress
@@ -210,7 +207,6 @@ echo
 
 # Prepair for Cloning
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/cloning-server-cloning-settings.71035/
-
 
 if [ "$clone" = "on" ]; then
 	echo "Setting Plesk Cloning feature."
@@ -224,5 +220,4 @@ fi
 echo
 echo "Your Plesk WordPress Edition is complete."
 echo "Thank you for using the WordPress Edition Cookbook"
-echo
 echo
