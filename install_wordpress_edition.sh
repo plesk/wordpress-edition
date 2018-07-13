@@ -6,12 +6,10 @@
 
 # Edit variables for Plesk pre-configuration
 
-hostname='cp.domain.tst'
 email='admin@test.tst'
 passwd='CookBook123'
 name='admin'
 agreement=true
-ip_type=shared
 
 # Plesk Activation Code - provide proper license for initialization, it will be replaced after cloning
 # leave as null if not providing key
@@ -63,7 +61,7 @@ echo
 # Install Plesk with Required Components
 
 echo "Starting Plesk Installation"
-./plesk-installer install plesk --preset Recommended --with panel bind fail2ban l10n pmm mysqlgroup roundcube kav spamassassin postfix dovecot proftpd awstats modsecurity mod_fcgid webservers php7.2 php7.1 config-troubleshooter psa-firewall heavy-metal-skin letsencrypt 
+./plesk-installer install plesk --preset Recommended --with panel bind fail2ban modsecurity spamassassin mailman psa-firewall pmm healt-monitor
 echo
 echo
 
@@ -71,7 +69,7 @@ echo
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/init_conf-server-configuration.37843/
 
 echo "Starting initialization process of your Plesk server"
-plesk bin init_conf --init -email $email -passwd $passwd -name $name -hostname $hostname -license_agreed $agreement -ip-type $ip_type 
+plesk bin init_conf --init -email $email -passwd $passwd -name $name -license_agreed $agreement 
 plesk bin settings --set solution_type="wordpress"
 echo
 
@@ -87,7 +85,7 @@ fi
 
 # Configure Service Provider View On
 
-if [ "$pleskui" = "spv" ]; then
+if [ "$plesk_ui" = "spv" ]; then
     echo "Setting to Service Provider View"
     plesk bin poweruser --off
     echo
@@ -136,10 +134,11 @@ if [ "$fail2ban" = "yes" ]; then
   plesk bin ip_ban --enable-jails plesk-postfix
   plesk bin ip_ban --enable-jails plesk-dovecot
   plesk bin ip_ban --enable-jails plesk-roundcube
-  plesk bin ip_ban --enable-jails plesk-roundcube
   plesk bin ip_ban --enable-jails plesk-apache-badbot
   plesk bin ip_ban --enable-jails plesk-panel
   plesk bin ip_ban --enable-jails plesk-wordpress
+  plesk bin ip_ban --enable-jails plesk-apache
+  plesk bin ip_ban --enable-jails plesk-horde
   echo
 fi
 
@@ -157,18 +156,13 @@ fi
 
 echo "Installing Requested Plesk Extensions"
 echo
-echo "Installing WordPress Toolkit"
-plesk bin extension --install-url https://ext.plesk.com/packages/00d002a7-3252-4996-8a08-aa1c89cf29f7-wp-toolkit/download
 echo "Installing SEO Toolkit"
 plesk bin extension --install-url https://ext.plesk.com/packages/2ae9cd0b-bc5c-4464-a12d-bd882c651392-xovi/download
-echo
-echo "Installing Advisor"
-plesk bin extension --install-url https://ext.plesk.com/packages/bbf16bc7-094e-4cb3-8b9c-32066fc66561-advisor/download
 echo
 echo "Installing BoldGrid"
 plesk bin extension --install-url https://ext.plesk.com/packages/e4736f87-ba7e-4601-a403-7c82682ef07d-boldgrid/download
 echo
-echo "Installing Backup to Cloud Pro"
+echo "Installing Backup to Cloud Pro extensions"
 plesk bin extension --install-url https://ext.plesk.com/packages/9f3b75b3-d04d-44fe-a8fa-7e2b1635c2e1-dropbox-backup/download
 plesk bin extension --install-url https://ext.plesk.com/packages/52fd6315-22a4-48b8-959d-b2f1fd737d11-google-drive-backup/download
 plesk bin extension --install-url https://ext.plesk.com/packages/8762049b-870e-47cb-ba14-9f055b99b508-s3-backup/download
@@ -205,7 +199,7 @@ echo
 
 if [ "$clone" = "on" ]; then
 	echo "Setting Plesk Cloning feature."
-	plesk bin cloning --update -prepare-public-image true
+	plesk bin cloning --update -prepare-public-image true -reset-lincese true -skip-update true
 	echo "Plesk initialization will be wiped on next boot. Ready for Cloning."
 else
   echo "Here is your login"
