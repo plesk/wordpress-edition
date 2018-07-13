@@ -63,7 +63,7 @@ echo
 # Install Plesk with Required Components
 
 echo "Starting Plesk Installation"
-./plesk-installer install plesk --preset Recommended --with panel bind fail2ban l10n pmm mysqlgroup roundcube kav spamassassin postfix dovecot proftpd awstats modsecurity mod_fcgid webservers php7.2 php7.1 config-troubleshooter psa-firewall heavy-metal-skin letsencrypt 
+./plesk-installer install plesk --preset Recommended --with panel bind fail2ban l10n pmm mysqlgroup roundcube kav spamassassin postfix dovecot proftpd awstats modsecurity mod_fcgid webservers php7.2 php7.1 config-troubleshooter psa-firewall heavy-metal-skin letsencrypt
 echo
 echo
 
@@ -71,7 +71,7 @@ echo
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/init_conf-server-configuration.37843/
 
 echo "Starting initialization process of your Plesk server"
-plesk bin init_conf --init -email $email -passwd $passwd -name $name -hostname $hostname -license_agreed $agreement -ip-type $ip_type 
+plesk bin init_conf --init -email $email -passwd $passwd -name $name -hostname $hostname -license_agreed $agreement -ip-type $ip_type
 plesk bin settings --set solution_type="wordpress"
 echo
 
@@ -189,12 +189,15 @@ plesk bin extension --install-url https://ext.plesk.com/packages/7d37cfde-f133-4
 echo
 echo "Installing Sucuri Site Scanner"
 plesk bin extension --install-url https://ext.plesk.com/packages/2d5b423b-9104-40f2-9286-a75a6debd43f-sucuri-scanner/download
-echo 
+echo
 echo "Installing Let's Encrypt"
 plesk bin extension --install-url https://ext.plesk.com/packages/f6847e61-33a7-4104-8dc9-d26a0183a8dd-letsencrypt/download
 echo
 echo "Installing Plesk Migration Manager"
 plesk bin extension --install-url https://ext.plesk.com/packages/bebc4866-d171-45fb-91a6-4b139b8c9a1b-panel-migrator/download
+echo
+echo "Installing DomainConnect"
+plesk bin extension --install-url https://ext.plesk.com/packages/3a36f828-e477-4600-be33-48c21e351c9a-domain-connect/download
 echo
 echo "Installing Welcome Extension"
 plesk bin extension --install-url https://ext.plesk.com/packages/39eb8f3d-0d9a-4605-a42a-c37ca5809415-welcome/download
@@ -203,7 +206,7 @@ echo
 
 echo "Enabling Welcome Guide for the Plesk WordPress Edition"
 plesk ext welcome --select -preset wordpress
-echo 
+echo
 
 # Prepair for Cloning
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/cloning-server-cloning-settings.71035/
