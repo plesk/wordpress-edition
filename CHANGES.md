@@ -1,3 +1,10 @@
+# 1.2.1
+* [*] Fixed bug with plesk_ui
+* [*] Changed default plesk_ui to Service Provider View
+
+# 1.2
+* [*] Replaced old Welcome Extension with the new Welcome Guide
+
 # 1.1
 * [*] Updated the cookbook for the latest version of the WordPress Edition
 * [*] Replaced the Security Advisor with our new Advisor Extension
