@@ -197,10 +197,6 @@ plesk ext welcome --select -preset wordpress
 echo 
 
 
-echo "Enabling Welcome Guide for the Plesk WordPress Edition"
-plesk ext welcome --select -preset wordpress
-echo
-
 # Prepair for Cloning
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/cloning-server-cloning-settings.71035/
 
