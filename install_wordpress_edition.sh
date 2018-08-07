@@ -64,7 +64,7 @@ echo "Starting Plesk Installation"
 OUT=$?
 if [ $OUT -ne 0 ];then
   echo
-  echo "Plesk Installation Failed. Plese see logged lines above for error handling"
+  echo "An error occurred! The installation of Plesk failed. Please see logged lines above for error handling!"
   exit 1
 fi
 
