@@ -61,6 +61,12 @@ echo
 
 echo "Starting Plesk Installation"
 ./plesk-installer install plesk --preset Recommended --with fail2ban modsecurity spamassassin mailman psa-firewall pmm health-monitor
+OUT=$?
+if [ $OUT -ne 0 ];then
+  echo
+  echo "An error occurred! The installation of Plesk failed. Please see logged lines above for error handling!"
+  exit 1
+fi
 
 # If Ruby and NodeJS are needed then run install Plesk using the following command:
 # ./plesk-installer install plesk --preset Recommended --with fail2ban modsecurity spamassassin mailman psa-firewall pmm health-monitor passenger ruby nodejs gems-preecho
@@ -71,9 +77,7 @@ echo
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/init_conf-server-configuration.37843/
 
 echo "Starting initialization process of your Plesk server"
-
 plesk bin init_conf --init -email $email -passwd $passwd -name $name -license_agreed $agreement 
-
 plesk bin settings --set solution_type="wordpress"
 echo
 
@@ -195,6 +199,7 @@ echo
 echo "Enabling Welcome Guide for the Plesk WordPress Edition"
 plesk ext welcome --select -preset wordpress
 echo 
+
 
 
 # Prepair for Cloning
