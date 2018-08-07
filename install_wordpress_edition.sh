@@ -6,17 +6,14 @@
 
 # Edit variables for Plesk pre-configuration
 
-hostname='cp.domain.tst'
 email='admin@test.tst'
 passwd='CookBook123'
 name='admin'
 agreement=true
-ip_type=shared
 
 # Plesk Activation Code - provide proper license for initialization, it will be replaced after cloning
 # leave as null if not providing key
 activation_key=$1
-
 
 # Plesk UI View - can be set to Service Provider View (spv) or Power User View (puv)
 plesk_ui=spv
@@ -37,7 +34,7 @@ echo 'Please provide a proper Plesk Activation Code (Bundle License).'
   exit 1
 fi
 
-if [[ -z $hostname || -z $email || -z $passwd || -z $name || -z $agreement || -z $ip_type ]]; then
+if [[ -z $email || -z $passwd || -z $name || -z $agreement ]]; then
   echo 'One or more variables are undefined. Please check your initialization values.'
   exit 1
 fi
@@ -63,7 +60,10 @@ echo
 # Install Plesk with Required Components
 
 echo "Starting Plesk Installation"
-./plesk-installer install plesk --preset Recommended --with panel bind fail2ban l10n pmm mysqlgroup roundcube kav spamassassin postfix dovecot proftpd awstats modsecurity mod_fcgid webservers php7.2 php7.1 config-troubleshooter psa-firewall heavy-metal-skin letsencrypt 
+./plesk-installer install plesk --preset Recommended --with fail2ban modsecurity spamassassin mailman psa-firewall pmm health-monitor
+
+# If Ruby and NodeJS are needed then run install Plesk using the following command:
+# ./plesk-installer install plesk --preset Recommended --with fail2ban modsecurity spamassassin mailman psa-firewall pmm health-monitor passenger ruby nodejs gems-preecho
 echo
 echo
 
@@ -71,10 +71,11 @@ echo
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/init_conf-server-configuration.37843/
 
 echo "Starting initialization process of your Plesk server"
-plesk bin init_conf --init -email $email -passwd $passwd -name $name -hostname $hostname -license_agreed $agreement -ip-type $ip_type 
+
+plesk bin init_conf --init -email $email -passwd $passwd -name $name -license_agreed $agreement 
+
 plesk bin settings --set solution_type="wordpress"
 echo
-
 
 # Install Plesk Activation Key if provided
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/license-license-keys.71029/
@@ -87,7 +88,7 @@ fi
 
 # Configure Service Provider View On
 
-if [ "$pleskui" = "spv" ]; then
+if [ "$plesk_ui" = "spv" ]; then
     echo "Setting to Service Provider View"
     plesk bin poweruser --off
     echo
@@ -136,10 +137,11 @@ if [ "$fail2ban" = "yes" ]; then
   plesk bin ip_ban --enable-jails plesk-postfix
   plesk bin ip_ban --enable-jails plesk-dovecot
   plesk bin ip_ban --enable-jails plesk-roundcube
-  plesk bin ip_ban --enable-jails plesk-roundcube
   plesk bin ip_ban --enable-jails plesk-apache-badbot
   plesk bin ip_ban --enable-jails plesk-panel
   plesk bin ip_ban --enable-jails plesk-wordpress
+  plesk bin ip_ban --enable-jails plesk-apache
+  plesk bin ip_ban --enable-jails plesk-horde
   echo
 fi
 
@@ -157,19 +159,13 @@ fi
 
 echo "Installing Requested Plesk Extensions"
 echo
-echo "Installing WordPress Toolkit"
-plesk bin extension --install-url https://ext.plesk.com/packages/00d002a7-3252-4996-8a08-aa1c89cf29f7-wp-toolkit/download
-echo
 echo "Installing SEO Toolkit"
 plesk bin extension --install-url https://ext.plesk.com/packages/2ae9cd0b-bc5c-4464-a12d-bd882c651392-xovi/download
-echo
-echo "Installing Advisor"
-plesk bin extension --install-url https://ext.plesk.com/packages/bbf16bc7-094e-4cb3-8b9c-32066fc66561-advisor/download
 echo
 echo "Installing BoldGrid"
 plesk bin extension --install-url https://ext.plesk.com/packages/e4736f87-ba7e-4601-a403-7c82682ef07d-boldgrid/download
 echo
-echo "Installing Backup to Cloud Pro"
+echo "Installing Backup to Cloud extensions"
 plesk bin extension --install-url https://ext.plesk.com/packages/9f3b75b3-d04d-44fe-a8fa-7e2b1635c2e1-dropbox-backup/download
 plesk bin extension --install-url https://ext.plesk.com/packages/52fd6315-22a4-48b8-959d-b2f1fd737d11-google-drive-backup/download
 plesk bin extension --install-url https://ext.plesk.com/packages/8762049b-870e-47cb-ba14-9f055b99b508-s3-backup/download
@@ -190,28 +186,23 @@ echo
 echo "Installing Sucuri Site Scanner"
 plesk bin extension --install-url https://ext.plesk.com/packages/2d5b423b-9104-40f2-9286-a75a6debd43f-sucuri-scanner/download
 echo 
-echo "Installing Let's Encrypt"
-plesk bin extension --install-url https://ext.plesk.com/packages/f6847e61-33a7-4104-8dc9-d26a0183a8dd-letsencrypt/download
+echo "Installing Domain Connect"
+plesk bin extension --install-url https://ext.plesk.com/packages/3a36f828-e477-4600-be33-48c21e351c9a-domain-connect/download
 echo
-echo "Installing Plesk Migration Manager"
-plesk bin extension --install-url https://ext.plesk.com/packages/bebc4866-d171-45fb-91a6-4b139b8c9a1b-panel-migrator/download
-echo
-echo "Installing Welcome Extension"
+echo "Installing Welcome Guide"
 plesk bin extension --install-url https://ext.plesk.com/packages/39eb8f3d-0d9a-4605-a42a-c37ca5809415-welcome/download
 echo
-
-
 echo "Enabling Welcome Guide for the Plesk WordPress Edition"
 plesk ext welcome --select -preset wordpress
 echo 
 
+
 # Prepair for Cloning
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/cloning-server-cloning-settings.71035/
 
-
 if [ "$clone" = "on" ]; then
 	echo "Setting Plesk Cloning feature."
-	plesk bin cloning --update -prepare-public-image true
+	plesk bin cloning --update -prepare-public-image true -reset-lincese true -skip-update true
 	echo "Plesk initialization will be wiped on next boot. Ready for Cloning."
 else
   echo "Here is your login"
@@ -221,5 +212,4 @@ fi
 echo
 echo "Your Plesk WordPress Edition is complete."
 echo "Thank you for using the WordPress Edition Cookbook"
-echo
 echo
