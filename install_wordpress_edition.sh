@@ -15,9 +15,8 @@ agreement=true
 # leave as null if not providing key
 activation_key=$1
 
-
 # Plesk UI View - can be set to Service Provider View (spv) or Power User View (puv)
-plesk_ui=puv
+plesk_ui=spv
 
 # Turn on Fail2Ban, yes or no, Keep in mind you need to provide temp license for initialization for this to work
 fail2ban=yes
@@ -69,7 +68,6 @@ if [ $OUT -ne 0 ];then
   exit 1
 fi
 
-
 # If Ruby and NodeJS are needed then run install Plesk using the following command:
 # ./plesk-installer install plesk --preset Recommended --with fail2ban modsecurity spamassassin mailman psa-firewall pmm health-monitor passenger ruby nodejs gems-preecho
 echo
@@ -82,7 +80,6 @@ echo "Starting initialization process of your Plesk server"
 plesk bin init_conf --init -email $email -passwd $passwd -name $name -license_agreed $agreement 
 plesk bin settings --set solution_type="wordpress"
 echo
-
 
 # Install Plesk Activation Key if provided
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/license-license-keys.71029/
@@ -208,7 +205,6 @@ echo
 # Prepair for Cloning
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/cloning-server-cloning-settings.71035/
 
-
 if [ "$clone" = "on" ]; then
 	echo "Setting Plesk Cloning feature."
 	plesk bin cloning --update -prepare-public-image true -reset-lincese true -skip-update true
@@ -221,5 +217,4 @@ fi
 echo
 echo "Your Plesk WordPress Edition is complete."
 echo "Thank you for using the WordPress Edition Cookbook"
-echo
 echo
