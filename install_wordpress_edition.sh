@@ -178,7 +178,7 @@ echo
 echo "Installing Speed Kit"
 plesk bin extension --install-url https://ext.plesk.com/packages/11e1bf5f-a0df-48c6-8761-e890ff4e906c-baqend/download
 echo
-echo "Installing Revisium Antivirus for Websites"
+echo "Installing ImunifyAV"
 plesk bin extension --install-url https://ext.plesk.com/packages/b71916cf-614e-4b11-9644-a5fe82060aaf-revisium-antivirus/download
 echo
 echo "Installing Google Pagespeed Insights"
