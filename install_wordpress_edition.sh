@@ -207,7 +207,7 @@ echo
 
 if [ "$clone" = "on" ]; then
 	echo "Setting Plesk Cloning feature."
-	plesk bin cloning --update -prepare-public-image true -reset-lincese true -skip-update true
+	plesk bin cloning --update -prepare-public-image true -reset-license true -skip-update true
 	echo "Plesk initialization will be wiped on next boot. Ready for Cloning."
 else
   echo "Here is your login"
