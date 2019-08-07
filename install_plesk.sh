@@ -57,19 +57,17 @@ echo "Welcome to ubuntu-plesk-server-setup script."
 echo ""
 
 while [ "$#" -gt 0 ]; do
-        case "$1" in
-        -i | --interactive)
-            interactive_install="y"
-            ;;
-        --travis)
-            travis="y"
-            ;;
-        *) ;;
-        esac
-        shift
-    done
-fi
-
+    case "$1" in
+    -i | --interactive)
+        interactive_install="y"
+        ;;
+    --travis)
+        travis="y"
+        ;;
+    *) ;;
+    esac
+    shift
+done
 
 ##################################
 # Menu
@@ -82,33 +80,33 @@ echo "Make sure you have properly installed your public key in $HOME/.ssh/author
 echo "#####################################"
 sleep 1
 if [ "$interactive_install" = "y" ]; then
-if [ ! -d /etc/mysql ]; then
-    echo "#####################################"
-    echo "MariaDB server"
-    echo "#####################################"
-    echo ""
-    echo "Do you want to install MariaDB-server ? (y/n)"
-    while [[ $mariadb_server_install != "y" && $mariadb_server_install != "n" ]]; do
-        echo -e "Select an option [y/n]: "
-        read -r mariadb_server_install
-    done
-    if [[ "$mariadb_server_install" == "y" || "$mariadb_client_install" == "y" ]]; then
+    if [ ! -d /etc/mysql ]; then
+        echo "#####################################"
+        echo "MariaDB server"
+        echo "#####################################"
         echo ""
-        echo "What version of MariaDB Client/Server do you want to install, 10.1, 10.2 or 10.3 ?"
-        while [[ $mariadb_version_install != "10.1" && $mariadb_version_install != "10.2" && $mariadb_version_install != "10.3" ]]; do
-            echo -e "Select an option [10.1 / 10.2 / 10.3]: "
-            read -r mariadb_version_install
+        echo "Do you want to install MariaDB-server ? (y/n)"
+        while [[ $mariadb_server_install != "y" && $mariadb_server_install != "n" ]]; do
+            echo -e "Select an option [y/n]: "
+            read -r mariadb_server_install
         done
+        if [[ "$mariadb_server_install" == "y" || "$mariadb_client_install" == "y" ]]; then
+            echo ""
+            echo "What version of MariaDB Client/Server do you want to install, 10.1, 10.2 or 10.3 ?"
+            while [[ $mariadb_version_install != "10.1" && $mariadb_version_install != "10.2" && $mariadb_version_install != "10.3" ]]; do
+                echo -e "Select an option [10.1 / 10.2 / 10.3]: "
+                read -r mariadb_version_install
+            done
+        fi
+        sleep 1
     fi
-    sleep 1
-fi
 else
-if [ -z "$mariadb_server_install" ]; then
-mariadb_version_install="y"
-fi
-if [ -z "$mariadb_version_install" ]; then
-mariadb_version_install="10.3"
-fi
+    if [ -z "$mariadb_server_install" ]; then
+        mariadb_version_install="y"
+    fi
+    if [ -z "$mariadb_version_install" ]; then
+        mariadb_version_install="10.3"
+    fi
 fi
 echo ""
 echo "#####################################"
@@ -125,14 +123,14 @@ echo "##########################################"
 echo " Updating Packages"
 echo "##########################################"
 if [ "$travis" != "y" ]; then
-apt-get update -qq
-DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade \
---option=Dpkg::options::=--force-confdef \
---option=Dpkg::options::=-force-unsafe-io \
---option=Dpkg::options::=--force-confold \
---assume-yes --quiet
-apt-get autoremove -y --purge
-apt-get autoclean -y
+    apt-get update -qq
+    DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade \
+        --option=Dpkg::options::=--force-confdef \
+        --option=Dpkg::options::=-force-unsafe-io \
+        --option=Dpkg::options::=--force-confold \
+        --assume-yes --quiet
+    apt-get autoremove -y --purge
+    apt-get autoclean -y
 fi
 
 ##################################
@@ -144,9 +142,9 @@ echo " Installing useful packages"
 echo "##########################################"
 
 DEBIAN_FRONTEND=noninteractive apt-get \
---option=Dpkg::options::=--force-confmiss \
---option=Dpkg::options::=--force-confold \
---assume-yes install haveged curl git unzip zip htop nload nmon ntp gnupg gnupg2 wget pigz tree ccze mycli -y
+    --option=Dpkg::options::=--force-confmiss \
+    --option=Dpkg::options::=--force-confold \
+    --assume-yes install haveged curl git unzip zip htop nload nmon ntp gnupg gnupg2 wget pigz tree ccze mycli -y
 
 # ntp time
 systemctl enable ntp
@@ -195,21 +193,21 @@ sysctl -e -p /etc/sysctl.d/60-ubuntu-nginx-web-server.conf
 cp -f $HOME/ubuntu-nginx-web-server/etc/security/limits.conf /etc/security/limits.conf
 
 # Redis transparent_hugepage
-echo never >/sys/kernel/mm/transparent_hugepage/enabled
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
 
 # additional systcl configuration with network interface name
 # get network interface names like eth0, ens18 or eno1
 # for each interface found, add the following configuration to sysctl
 NET_INTERFACES_WAN=$(ip -4 route get 8.8.8.8 | grep -oP "dev [^[:space:]]+ " | cut -d ' ' -f 2)
 {
-echo ""
-echo "# do not autoconfigure IPv6 on $NET_INTERFACES_WAN"
-echo "net.ipv6.conf.$NET_INTERFACES_WAN.autoconf = 0"
-echo "net.ipv6.conf.$NET_INTERFACES_WAN.accept_ra = 0"
-echo "net.ipv6.conf.$NET_INTERFACES_WAN.accept_ra = 0"
-echo "net.ipv6.conf.$NET_INTERFACES_WAN.autoconf = 0"
-echo "net.ipv6.conf.$NET_INTERFACES_WAN.accept_ra_defrtr = 0"
-} >>/etc/sysctl.d/60-ubuntu-nginx-web-server.conf
+    echo ""
+    echo "# do not autoconfigure IPv6 on $NET_INTERFACES_WAN"
+    echo "net.ipv6.conf.$NET_INTERFACES_WAN.autoconf = 0"
+    echo "net.ipv6.conf.$NET_INTERFACES_WAN.accept_ra = 0"
+    echo "net.ipv6.conf.$NET_INTERFACES_WAN.accept_ra = 0"
+    echo "net.ipv6.conf.$NET_INTERFACES_WAN.autoconf = 0"
+    echo "net.ipv6.conf.$NET_INTERFACES_WAN.accept_ra_defrtr = 0"
+} >> /etc/sysctl.d/60-ubuntu-nginx-web-server.conf
 
 ##################################
 # Add MariaDB 10.3 repository
@@ -261,6 +259,7 @@ if [ "$mariadb_server_install" = "y" ]; then
         mysql -e "FLUSH PRIVILEGES"
     fi
 fi
+
 ##################################
 # MariaDB tweaks
 ##################################
@@ -309,19 +308,17 @@ echo
 
 echo "Starting Plesk Installation"
 if ! { ./plesk-installer install testing --components panel bind fail2ban \
-l10n pmm mysqlgroup docker repair-kit \
-roundcube spamassassin postfix dovecot \
-proftpd awstats mod_fcgid webservers git \
-nginx php7.2 php7.3 config-troubleshooter \
-psa-firewall cloudflare wp-toolkit letsencrypt \
-imunifyav sslit; }; then
+    l10n pmm mysqlgroup docker repair-kit \
+    roundcube spamassassin postfix dovecot \
+    proftpd awstats mod_fcgid webservers git \
+    nginx php7.2 php7.3 config-troubleshooter \
+    psa-firewall cloudflare wp-toolkit letsencrypt \
+    imunifyav sslit; }; then
     echo
     echo "An error occurred! The installation of Plesk failed. Please see logged lines above for error handling!"
     exit 1
 fi
 #./plesk-installer --select-product-id plesk --select-release-latest --installation-type Recommended
-
-
 
 # Enable VPS Optimized Mode
 echo "Enable VPS Optimized Mode"
@@ -335,9 +332,6 @@ echo ""
 
 # Initalize Plesk before Additional Configuration
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/init_conf-server-configuration.37843/
-
-
-
 
 # Install Plesk Activation Key if provided
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/license-license-keys.71029/
