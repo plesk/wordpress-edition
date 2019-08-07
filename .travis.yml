@@ -1,0 +1,28 @@
+sudo: required
+dist: bionic
+
+language: bash
+
+addons:
+  apt:
+    update: true
+
+git:
+  quiet: true
+
+cache:
+  apt: true
+
+before_install:
+  - rm -rf ~/.gnupg
+
+before_script:
+  - sudo rm -rf /etc/mysql
+  - sudo bash -c 'echo example.com > /etc/hostname'
+  - sudo apt-get -qq autoremove mysql* graphviz* redis* --purge
+
+script:
+  - lsb_release -a
+  - unset LANG
+  - sudo echo "Travis Banch = $TRAVIS_BRANCH"
+  - sudo bash install_plesk.sh --travis
