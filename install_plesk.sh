@@ -10,7 +10,7 @@
 # Edit variables for Plesk pre-configuration
 
 email='admin@test.tst'
-passwd='Testadmin2019@'
+passwd='Testadmin2019'
 name='admin'
 agreement=true
 
@@ -28,6 +28,9 @@ fail2ban=yes
 
 # Turn on http2
 http2=yes
+
+# PCI COMPLIANCE
+pci_compliance=false
 
 # Turn on Cloning - Set to "on" if this it to make a Golden Image, set to "off" if for remote installation
 clone=off
@@ -144,7 +147,7 @@ echo "##########################################"
 DEBIAN_FRONTEND=noninteractive apt-get \
     --option=Dpkg::options::=--force-confmiss \
     --option=Dpkg::options::=--force-confold \
-    --assume-yes install haveged curl git unzip zip htop nload nmon ntp gnupg gnupg2 wget pigz tree ccze mycli -y
+    --assume-yes install haveged curl git unzip zip htop nload nmon ntp gnupg gnupg2 wget pigz tree ccze mycli
 
 # ntp time
 systemctl enable ntp
@@ -336,15 +339,17 @@ echo ""
 # Install Plesk Activation Key if provided
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/license-license-keys.71029/
 
-if [[ -n "$activation_key" ]]; then
+export PSA_PASSWORD="$passwd"
+
+if [ -n "$activation_key" ]; then
     echo "Starting initialization process of your Plesk server"
-    /usr/sbin/plesk bin init_conf --init -email "$email" -passwd "$passwd" -name "$name" -license_agreed "$agreement"
+    /usr/sbin/plesk bin init_conf --init -email "$email" -passwd "" -name "$name" -license_agreed "$agreement"
     echo "Installing Plesk Activation Code"
     /usr/sbin/plesk bin license --install "$activation_key"
     echo
 else
     echo "Starting initialization process of your Plesk server"
-    /usr/sbin/plesk bin init_conf --init -email "$email" -passwd "$passwd" -name "$name" -license_agreed "$agreement" -trial_license true
+    /usr/sbin/plesk bin init_conf --init -email "$email" -passwd "" -name "$name" -license_agreed "$agreement" -trial_license true
 fi
 
 # Configure Service Provider View On
@@ -411,7 +416,9 @@ if [ "$http2" = "yes" ]; then
 fi
 
 # Enable PCI Compliance
+if [ "$pci_compliance" = "yes" ]; then
 /usr/sbin/plesk sbin pci_compliance_resolver --enable all
+fi
 
 # Install Bundle Extensions
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/extension-extensions.71031/
