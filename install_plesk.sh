@@ -10,7 +10,7 @@
 # Edit variables for Plesk pre-configuration
 
 email='admin@test.tst'
-passwd='Testadmin2019'
+passwd='CookBook123'
 name='admin'
 agreement=true
 
@@ -339,7 +339,7 @@ echo ""
 # Install Plesk Activation Key if provided
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/license-license-keys.71029/
 
-export PSA_PASSWORD="$passwd"
+export PSA_PASSWORD=$passwd
 
 if [ -n "$activation_key" ]; then
     echo "Starting initialization process of your Plesk server"
