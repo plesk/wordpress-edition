@@ -1,44 +1,19 @@
-[![Apache 2](http://img.shields.io/badge/license-Apache%202-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-
-# Plesk WordPress Edition
+<h1  style="text-align: center">Ubuntu Plesk Server</h1>
+<p  style="text-align: center">
+<a href="http://www.apache.org/licenses/LICENSE-2.0"><img src="http://img.shields.io/badge/license-Apache 2-blue.svg" alt="" class="loading" id="image-hash-bc6178aff0e15ee8f4edae603da1dae0507fe3b777dd8805798f27346188a087"></a>
+<a href="https://travis-ci.org/VirtuBox/ubuntu-plesk-server"><img src="https://img.shields.io/travis/VirtuBox/ubuntu-plesk-server" alt="" class="loading" id="image-hash-82e1c6d8511303293d97069a09b0af49d3663e60ba7776ae8a0070d3f5341a53"></a>
+<img src="https://img.shields.io/github/last-commit/VirtuBox/ubuntu-plesk-server" alt="" class="loading" id="image-hash-f064751bd7f01bbca0f077a9287d0d81a8fb4ebecef5bbc4363f37358ae6a9df"></p>
+</p>
 
 This repository contains all you need to build and customize your personal preconfigured WordPress Server solution with Plesk. The included whitepaper describes the solution in detail and highlights why you should offer it to your customers.
 
-![](https://raw.githubusercontent.com/plesk/ext-welcome-guide/master/src/_meta/screenshots/2.png)
-
 ## Description
 
-  Here at Plesk we strive to Simpify the Lives of Web Professionals. This includes our Partners. This cookbook will install and configure Plesk Core, Modules and Bundle Extensions. It will also enable and configure security features and prepare your VM to be used as a VM template. 
+  Here at Plesk we strive to Simpify the Lives of Web Professionals. This includes our Partners. This cookbook will install and configure Plesk Core, Modules and Bundle Extensions. It will also enable and configure security features and prepare your VM to be used as a VM template.
 
 ## Requirements
 
- * Contract with Plesk to be able to retrieve Plesk Licenses from the Key Administrator Server (KA)
- * Provide Plesk Key with Proper Plesk Exension keys associated in cookbook script
+* Ubuntu 18.04 LTS
+* Ubuntu 16.04 LTS
 
- or
-
-  * A Plesk license with the [WordPress Pack](https://ext.plesk.com/packages/f8afea30-b1e9-45f5-ab71-437a0ce7c817-offer-wordpress-feature-pack)
- 
 ## Deploying Plesk with WordPress Edition Cookbook
-
-1. Install one of the supported Linux Operating Systems ( https://docs.plesk.com/release-notes/onyx/hardware-requirements ) following hardware specs ( https://docs.plesk.com/release-notes/onyx/hardware-requirements/ )
-
-2. Shell to server as root
-
-3. Download and Edit Variables noted in install_wordpress_edition.sh
-
-4. Execute command 
-
-   $ chmod +x install install_wordpress_edition.sh
-
-5. Execute command 
-
-   $ ./install_wordpress_edition.sh <YOUR_ACTIVATION_KEY>
-
-### Using prebuild Plesk Images
-
-tbd
-
-## Support
-
-Found a bug or experienced an issue? Please open an [issue on Github](https://github.com/plesk/wordpress-edition/issues)!

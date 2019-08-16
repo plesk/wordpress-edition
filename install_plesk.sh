@@ -10,7 +10,7 @@
 # Edit variables for Plesk pre-configuration
 
 email='admin@test.tst'
-passwd='CookBook123'
+passwd='PleskUbuntu123'
 name='admin'
 agreement=true
 
@@ -51,6 +51,11 @@ if [[ -z "$email" || -z "$passwd" || -z "$name" || -z "$agreement" ]]; then
     exit 1
 fi
 
+readonly plesk_linux_distro=$(lsb_release -is)
+readonly plesk_distro_version=$(lsb_release -sc)
+readonly plesk_distro_id=$(lsb_release -rs)
+readonly plesk_srv_arch="$(uname -m)"
+
 ##################################
 # Welcome
 ##################################
@@ -67,6 +72,26 @@ while [ "$#" -gt 0 ]; do
     --travis)
         travis="y"
         ;;
+    -n | --name)
+        plesk_name="$2"
+        shift
+        ;;
+    -p | --password)
+        plesk_pass="$2"
+        shift
+        ;;
+    --email)
+        plesk_email="$2"
+        shift
+        ;;
+    -r | --release)
+        release_tiers="$2"
+        shift
+        ;;
+    -y | --agreement)
+        agreement="yes"
+        ;;
+
     *) ;;
     esac
     shift
@@ -132,8 +157,8 @@ if [ "$travis" != "y" ]; then
         --option=Dpkg::options::=-force-unsafe-io \
         --option=Dpkg::options::=--force-confold \
         --assume-yes --quiet
-    apt-get autoremove -y --purge
-    apt-get autoclean -y
+    apt-get autoremove --purge -qq
+    apt-get autoclean -qq
 fi
 
 ##################################
@@ -147,7 +172,8 @@ echo "##########################################"
 DEBIAN_FRONTEND=noninteractive apt-get \
     --option=Dpkg::options::=--force-confmiss \
     --option=Dpkg::options::=--force-confold \
-    --assume-yes install haveged curl git unzip zip htop nload nmon ntp gnupg gnupg2 wget pigz tree ccze mycli
+    --assume-yes install haveged curl git unzip zip htop \
+    nload nmon ntp gnupg gnupg2 wget pigz tree ccze mycli --quiet
 
 # ntp time
 systemctl enable ntp
@@ -178,6 +204,8 @@ CURRENT_SSH_PORT=$(grep "Port" /etc/ssh/sshd_config | awk -F " " '{print $2}')
 # download secure sshd_config
 cp -f $HOME/ubuntu-nginx-web-server/etc/ssh/sshd_config /etc/ssh/sshd_config
 
+iptables -I INPUT -p tcp --dport "$CURRENT_SSH_PORT" -j ACCEPT
+
 # change ssh default port
 sed -i "s/Port 22/Port $CURRENT_SSH_PORT/" /etc/ssh/sshd_config
 
@@ -191,12 +219,33 @@ echo "##########################################"
 echo " Applying Linux Kernel tweaks"
 echo "##########################################"
 
-cp -f $HOME/ubuntu-nginx-web-server/etc/sysctl.d/60-ubuntu-nginx-web-server.conf /etc/sysctl.d/60-ubuntu-nginx-web-server.conf
-sysctl -e -p /etc/sysctl.d/60-ubuntu-nginx-web-server.conf
-cp -f $HOME/ubuntu-nginx-web-server/etc/security/limits.conf /etc/security/limits.conf
+# download sysctl tweaks
+if [ ! -f /etc/sysctl.d/60-plesk-tweaks.conf ]; then
+    if [ "$plesk_srv_arch" = "x86_64" ]; then
+        wget -qO /etc/sysctl.d/60-plesk-tweaks.conf \
+            https://raw.githubusercontent.com/WordOps/WordOps/master/wo/cli/templates/sysctl.mustache
+        if [ "$plesk_distro_version" = "bionic" ] || [ "$plesk_distro_version" = "disco" ] || [ "$plesk_distro_version" = "buster" ]; then
+            modprobe tcp_bbr && echo 'tcp_bbr' >> /etc/modules-load.d/bbr.conf
+            echo -e '\nnet.ipv4.tcp_congestion_control = bbr\nnet.ipv4.tcp_notsent_lowat = 16384' >> /etc/sysctl.d/60-plesk-tweaks.conf
+        else
+            modprobe tcp_htcp && echo 'tcp_htcp' >> /etc/modules-load.d/htcp.conf
+            echo 'net.ipv4.tcp_congestion_control = htcp' >> /etc/sysctl.d/60-plesk-tweaks.conf
+        fi
+        # apply sysctl tweaks
+        sysctl -eq -p /etc/sysctl.d/60-plesk-tweaks.conf
+    fi
+fi
 
-# Redis transparent_hugepage
-echo never > /sys/kernel/mm/transparent_hugepage/enabled
+if [ ! -x /opt/wo-kernel.sh ]; then
+    {
+        # download and setup wo-kernel systemd service to apply kernel tweaks for netdata and redis on server startup
+        wget -qO /opt/wo-kernel.sh https://raw.githubusercontent.com/WordOps/WordOps/updating-configuration/wo/cli/templates/wo-kernel-script.mustache
+        chmod +x /opt/wo-kernel.sh
+        wget -qO /lib/systemd/system/wo-kernel.service https://raw.githubusercontent.com/WordOps/WordOps/updating-configuration/wo/cli/templates/wo-kernel-service.mustache
+        systemctl enable wo-kernel.service
+        systemctl start wo-kernel.service
+    } >> /tmp/plesk-install.log 2>&1
+fi
 
 # additional systcl configuration with network interface name
 # get network interface names like eth0, ens18 or eno1
@@ -222,12 +271,13 @@ if [[ "$mariadb_server_install" == "y" || "$mariadb_client_install" == "y" ]]; t
         echo "##########################################"
         echo " Adding MariaDB $mariadb_version_install repository"
         echo "##########################################"
-
-        wget -qO mariadb_repo_setup https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
-        chmod +x mariadb_repo_setup
-        ./mariadb_repo_setup --mariadb-server-version=$mariadb_version_install --skip-maxscale -y
-        rm mariadb_repo_setup
-        apt-get update -qq
+        {
+            wget -qO mariadb_repo_setup https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
+            chmod +x mariadb_repo_setup
+            ./mariadb_repo_setup --mariadb-server-version=$mariadb_version_install --skip-maxscale -y
+            rm mariadb_repo_setup
+            apt-get update -qq
+        } >> /tmp/plesk-install.log 2>&1
 
     fi
 
@@ -250,14 +300,14 @@ if [ "$mariadb_server_install" = "y" ]; then
         export DEBIAN_FRONTEND=noninteractive                             # to avoid prompt during installation
         debconf-set-selections <<<"mariadb-server-${mariadb_version_install} mysql-server/root_password password ${MYSQL_ROOT_PASS}"
         debconf-set-selections <<<"mariadb-server-${mariadb_version_install} mysql-server/root_password_again password ${MYSQL_ROOT_PASS}"
-        # install mariadb server
+        # # install mariadb server
         DEBIAN_FRONTEND=noninteractive apt-get install -qq mariadb-server # -qq implies -y --force-yes
-        ## mysql_secure_installation non-interactive way
+        # mysql_secure_installation non-interactive way
         # remove anonymous users
-        mysql -e "DROP USER ''@'localhost'" >/dev/null 2>&1
-        mysql -e "DROP USER ''@'$(hostname)'" >/dev/null 2>&1
+        mysql -e "DROP USER ''@'localhost'" > /dev/null 2>&1
+        mysql -e "DROP USER ''@'$(hostname)'" > /dev/null 2>&1
         # remove test database
-        mysql -e "DROP DATABASE test" >/dev/null 2>&1
+        mysql -e "DROP DATABASE test" > /dev/null 2>&1
         # flush privileges
         mysql -e "FLUSH PRIVILEGES"
     fi
@@ -272,6 +322,7 @@ if [ "$mariadb_server_install" = "y" ]; then
     echo " Optimizing MariaDB configuration"
     echo "##########################################"
 
+    cp /etc/mysql/my.cnf /etc/mysql/my.cnf.bak
     cp -f $HOME/ubuntu-nginx-web-server/etc/mysql/my.cnf /etc/mysql/my.cnf
 
     # stop mysql service to apply new InnoDB log file size
@@ -282,7 +333,7 @@ if [ "$mariadb_server_install" = "y" ]; then
     mv /var/lib/mysql/ib_logfile1 /var/lib/mysql/ib_logfile1.bak
 
     # increase mariadb open_files_limit
-    cp -f $HOME/ubuntu-nginx-web-server/etc/systemd/system/mariadb.service.d/limits.conf /etc/systemd/system/mariadb.service.d/limits.conf
+    echo -e '[Service]\nLimitNOFILE=500000' > /etc/systemd/system/mariadb.service.d/limits.conf
 
     # reload daemon
     systemctl daemon-reload
@@ -310,13 +361,13 @@ echo
 # Install Plesk testing with Required Components
 
 echo "Starting Plesk Installation"
-if ! { ./plesk-installer install testing --components panel bind fail2ban \
+if ! { ./plesk-installer install "$release_tiers" --components panel bind fail2ban \
     l10n pmm mysqlgroup docker repair-kit \
     roundcube spamassassin postfix dovecot \
     proftpd awstats mod_fcgid webservers git \
     nginx php7.2 php7.3 config-troubleshooter \
     psa-firewall cloudflare wp-toolkit letsencrypt \
-    imunifyav sslit; }; then
+    imunifyav sslit; } >> /tmp/plesk-install.log 2>&1; then
     echo
     echo "An error occurred! The installation of Plesk failed. Please see logged lines above for error handling!"
     exit 1
@@ -325,7 +376,7 @@ fi
 
 # Enable VPS Optimized Mode
 echo "Enable VPS Optimized Mode"
-plesk bin vps_optimized --turn-on
+plesk bin vps_optimized --turn-on >> /tmp/plesk-install.log 2>&1
 echo
 
 # If Ruby and NodeJS are needed then run install Plesk using the following command:
@@ -367,16 +418,18 @@ fi
 # Make sure Plesk UI and Plesk Update ports are allowed
 
 echo "Setting Firewall to allow proper ports."
-iptables -I INPUT -p tcp --dport 21 -j ACCEPT
-iptables -I INPUT -p tcp --dport 22 -j ACCEPT
-iptables -I INPUT -p tcp --dport 80 -j ACCEPT
-iptables -I INPUT -p tcp --dport 443 -j ACCEPT
-iptables -I INPUT -p tcp --dport 465 -j ACCEPT
-iptables -I INPUT -p tcp --dport 993 -j ACCEPT
-iptables -I INPUT -p tcp --dport 995 -j ACCEPT
-iptables -I INPUT -p tcp --dport 8443 -j ACCEPT
-iptables -I INPUT -p tcp --dport 8447 -j ACCEPT
-iptables -I INPUT -p tcp --dport 8880 -j ACCEPT
+{
+    iptables -I INPUT -p tcp --dport 21 -j ACCEPT
+    iptables -I INPUT -p tcp --dport 22 -j ACCEPT
+    iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+    iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+    iptables -I INPUT -p tcp --dport 465 -j ACCEPT
+    iptables -I INPUT -p tcp --dport 993 -j ACCEPT
+    iptables -I INPUT -p tcp --dport 995 -j ACCEPT
+    iptables -I INPUT -p tcp --dport 8443 -j ACCEPT
+    iptables -I INPUT -p tcp --dport 8447 -j ACCEPT
+    iptables -I INPUT -p tcp --dport 8880 -j ACCEPT
+} >> /tmp/plesk-install.log 2>&1
 
 echo
 
@@ -417,7 +470,7 @@ fi
 
 # Enable PCI Compliance
 if [ "$pci_compliance" = "yes" ]; then
-/usr/sbin/plesk sbin pci_compliance_resolver --enable all
+    /usr/sbin/plesk sbin pci_compliance_resolver --enable all
 fi
 
 # Install Bundle Extensions
