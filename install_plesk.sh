@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
-
-################################################################################
-##          Installation script for Plesk on Ubuntu                   ##
-################################################################################
-# Modified by VirtuBox
-# Github repository : https://github.com/VirtuBox/ubuntu-plesk-server
-# source : https://github.com/plesk/wordpress-edition
+# -------------------------------------------------------------------------
+#  Ubuntu Plesk server - Installation script for Plesk on Ubuntu
+# -------------------------------------------------------------------------
+# Website:       https://virtubox.net
+# GitHub:        https://github.com/VirtuBox/ubuntu-plesk-server
+# Source : https://github.com/plesk/wordpress-edition
+# Copyright (c) 2019 VirtuBox <contact@virtubox.net>
+# This script is licensed under Apache 2.0
+# -------------------------------------------------------------------------
+# Version 1.0.0 - 2019-08-21
+# -------------------------------------------------------------------------
 
 # Edit variables for Plesk pre-configuration
 
-email='admin@test.tst'
-passwd='PleskUbuntu123'
-name='admin'
-agreement=true
+plesk_email='admin@test.tst'
+plesk_pass='PleskUbuntu123'
+plesk_name='admin'
 
 # Plesk Activation Code - provide proper license for initialization, it will be replaced after cloning
 # leave as null if not providing key
@@ -46,7 +49,7 @@ fi
 
 # Test to make sure all initialization values are set
 
-if [[ -z "$email" || -z "$passwd" || -z "$name" || -z "$agreement" ]]; then
+if [[ -z "$plesk_email" || -z "$plesk_pass" || -z "$plesk_name" ]]; then
     echo 'One or more variables are undefined. Please check your initialization values.'
     exit 1
 fi
@@ -55,6 +58,7 @@ readonly plesk_linux_distro=$(lsb_release -is)
 readonly plesk_distro_version=$(lsb_release -sc)
 readonly plesk_distro_id=$(lsb_release -rs)
 readonly plesk_srv_arch="$(uname -m)"
+readonly plesk_kvm_detec=$(systemd-detect-virt)
 
 ##################################
 # Welcome
@@ -71,6 +75,8 @@ while [ "$#" -gt 0 ]; do
         ;;
     --travis)
         travis="y"
+        release_tiers="testing"
+        agreement="true"
         ;;
     -n | --name)
         plesk_name="$2"
@@ -84,14 +90,20 @@ while [ "$#" -gt 0 ]; do
         plesk_email="$2"
         shift
         ;;
+    --testing)
+        release_tiers="testing"
+        ;;
     -r | --release)
         release_tiers="$2"
         shift
         ;;
     -y | --agreement)
-        agreement="yes"
+        agreement="true"
         ;;
-
+    -l | --license)
+       activation_key="$2"
+       shift
+       ;;
     *) ;;
     esac
     shift
@@ -118,7 +130,7 @@ if [ "$interactive_install" = "y" ]; then
             echo -e "Select an option [y/n]: "
             read -r mariadb_server_install
         done
-        if [[ "$mariadb_server_install" == "y" || "$mariadb_client_install" == "y" ]]; then
+        if [[ "$mariadb_server_install" == "y" ]]; then
             echo ""
             echo "What version of MariaDB Client/Server do you want to install, 10.1, 10.2 or 10.3 ?"
             while [[ $mariadb_version_install != "10.1" && $mariadb_version_install != "10.2" && $mariadb_version_install != "10.3" ]]; do
@@ -143,6 +155,8 @@ echo "use CTRL + C if you want to cancel installation"
 echo "#####################################"
 sleep 5
 
+export DEBIAN_FRONTEND=noninteractive
+
 ##################################
 # Update packages
 ##################################
@@ -152,7 +166,7 @@ echo " Updating Packages"
 echo "##########################################"
 if [ "$travis" != "y" ]; then
     apt-get update -qq
-    DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade \
+    apt-get dist-upgrade \
         --option=Dpkg::options::=--force-confdef \
         --option=Dpkg::options::=-force-unsafe-io \
         --option=Dpkg::options::=--force-confold \
@@ -169,14 +183,18 @@ echo "##########################################"
 echo " Installing useful packages"
 echo "##########################################"
 
-DEBIAN_FRONTEND=noninteractive apt-get \
+apt-get \
     --option=Dpkg::options::=--force-confmiss \
     --option=Dpkg::options::=--force-confold \
     --assume-yes install haveged curl git unzip zip htop \
-    nload nmon ntp gnupg gnupg2 wget pigz tree ccze mycli --quiet
+    nload nmon ntp gnupg gnupg2 wget pigz tree tzdata ccze --quiet
 
-# ntp time
-systemctl enable ntp
+# set default ntp pools
+if ! grep -q "time.cloudflare.com" /etc/systemd/timesyncd.conf; then
+    sed -e 's/^#NTP=/NTP=time.cloudflare.com 0.ubuntu.pool.ntp.org 1.ubuntu.pool.ntp.org 2.ubuntu.pool.ntp.org 3.ubuntu.pool.ntp.org/' -i /etc/systemd/timesyncd.conf
+    # enable ntp
+    timedatectl set-ntp 1
+fi
 
 # increase history size
 export HISTSIZE=10000
@@ -202,12 +220,14 @@ fi
 CURRENT_SSH_PORT=$(grep "Port" /etc/ssh/sshd_config | awk -F " " '{print $2}')
 
 # download secure sshd_config
-cp -f $HOME/ubuntu-nginx-web-server/etc/ssh/sshd_config /etc/ssh/sshd_config
+cp -f "$HOME/ubuntu-nginx-web-server/etc/ssh/sshd_config" /etc/ssh/sshd_config
 
 iptables -I INPUT -p tcp --dport "$CURRENT_SSH_PORT" -j ACCEPT
 
-# change ssh default port
-sed -i "s/Port 22/Port $CURRENT_SSH_PORT/" /etc/ssh/sshd_config
+if [ "$CURRENT_SSH_PORT" != "22" ]; then
+    # change ssh default port
+    sed -i "s/Port 22/Port $CURRENT_SSH_PORT/" /etc/ssh/sshd_config
+fi
 
 # restart ssh service
 service ssh restart
@@ -239,9 +259,9 @@ fi
 if [ ! -x /opt/wo-kernel.sh ]; then
     {
         # download and setup wo-kernel systemd service to apply kernel tweaks for netdata and redis on server startup
-        wget -qO /opt/wo-kernel.sh https://raw.githubusercontent.com/WordOps/WordOps/updating-configuration/wo/cli/templates/wo-kernel-script.mustache
-        chmod +x /opt/wo-kernel.sh
-        wget -qO /lib/systemd/system/wo-kernel.service https://raw.githubusercontent.com/WordOps/WordOps/updating-configuration/wo/cli/templates/wo-kernel-service.mustache
+        wget -qO /opt/kernel-tweak.sh https://raw.githubusercontent.com/VirtuBox/kernel-tweak/master/kernel-tweak.sh
+        chmod +x /opt/kernel-tweak.sh
+        wget -qO /lib/systemd/system/kernel-tweak.service https://raw.githubusercontent.com/VirtuBox/kernel-tweak/master/kernel-tweak.service
         systemctl enable wo-kernel.service
         systemctl start wo-kernel.service
     } >> /tmp/plesk-install.log 2>&1
@@ -265,7 +285,7 @@ NET_INTERFACES_WAN=$(ip -4 route get 8.8.8.8 | grep -oP "dev [^[:space:]]+ " | c
 # Add MariaDB 10.3 repository
 ##################################
 
-if [[ "$mariadb_server_install" == "y" || "$mariadb_client_install" == "y" ]]; then
+if [ "$mariadb_server_install" == "y" ]; then
     if [ ! -f /etc/apt/sources.list.d/mariadb.list ]; then
         echo ""
         echo "##########################################"
@@ -297,11 +317,12 @@ if [ "$mariadb_server_install" = "y" ]; then
 
         # generate random password
         MYSQL_ROOT_PASS=""
-        export DEBIAN_FRONTEND=noninteractive                             # to avoid prompt during installation
-        debconf-set-selections <<<"mariadb-server-${mariadb_version_install} mysql-server/root_password password ${MYSQL_ROOT_PASS}"
-        debconf-set-selections <<<"mariadb-server-${mariadb_version_install} mysql-server/root_password_again password ${MYSQL_ROOT_PASS}"
+        echo "mariadb-server-${mariadb_version_install} mysql-server/root_password password ${MYSQL_ROOT_PASS}" | debconf-set-selections
+        echo "mariadb-server-${mariadb_version_install} mysql-server/root_password_again password ${MYSQL_ROOT_PASS}" | debconf-set-selections
+        # debconf-set-selections <<<"mariadb-server-${mariadb_version_install} mysql-server/root_password password ${MYSQL_ROOT_PASS}"
+        # debconf-set-selections <<<"mariadb-server-${mariadb_version_install} mysql-server/root_password_again password ${MYSQL_ROOT_PASS}"
         # # install mariadb server
-        DEBIAN_FRONTEND=noninteractive apt-get install -qq mariadb-server # -qq implies -y --force-yes
+        apt-get install -qq mariadb-server # -qq implies -y --force-yes
         # mysql_secure_installation non-interactive way
         # remove anonymous users
         mysql -e "DROP USER ''@'localhost'" > /dev/null 2>&1
@@ -323,7 +344,7 @@ if [ "$mariadb_server_install" = "y" ]; then
     echo "##########################################"
 
     cp /etc/mysql/my.cnf /etc/mysql/my.cnf.bak
-    cp -f $HOME/ubuntu-nginx-web-server/etc/mysql/my.cnf /etc/mysql/my.cnf
+    cp -f "$HOME/ubuntu-nginx-web-server/etc/mysql/my.cnf" /etc/mysql/my.cnf
 
     # stop mysql service to apply new InnoDB log file size
     service mysql stop
@@ -374,10 +395,12 @@ if ! { ./plesk-installer install "$release_tiers" --components panel bind fail2b
 fi
 #./plesk-installer --select-product-id plesk --select-release-latest --installation-type Recommended
 
-# Enable VPS Optimized Mode
-echo "Enable VPS Optimized Mode"
-plesk bin vps_optimized --turn-on >> /tmp/plesk-install.log 2>&1
-echo
+if [ "$plesk_kvm_detec" = "kvm" ]; then
+    # Enable VPS Optimized Mode
+    echo "Enable VPS Optimized Mode"
+    plesk bin vps_optimized --turn-on >> /tmp/plesk-install.log 2>&1
+    echo
+fi
 
 # If Ruby and NodeJS are needed then run install Plesk using the following command:
 # ./plesk-installer install plesk --preset Recommended --with fail2ban modsecurity spamassassin mailman psa-firewall pmm health-monitor passenger ruby nodejs gems-preecho
@@ -390,17 +413,17 @@ echo ""
 # Install Plesk Activation Key if provided
 # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/license-license-keys.71029/
 
-export PSA_PASSWORD=$passwd
+export PSA_PASSWORD=$plesk_pass
 
 if [ -n "$activation_key" ]; then
     echo "Starting initialization process of your Plesk server"
-    /usr/sbin/plesk bin init_conf --init -email "$email" -passwd "" -name "$name" -license_agreed "$agreement"
+    /usr/sbin/plesk bin init_conf --init -email "$plesk_email" -passwd "" -name "$plesk_name" -license_agreed "$agreement"
     echo "Installing Plesk Activation Code"
     /usr/sbin/plesk bin license --install "$activation_key"
     echo
 else
     echo "Starting initialization process of your Plesk server"
-    /usr/sbin/plesk bin init_conf --init -email "$email" -passwd "" -name "$name" -license_agreed "$agreement" -trial_license true
+    /usr/sbin/plesk bin init_conf --init -email "$plesk_email" -passwd "" -name "$plesk_name" -license_agreed "$agreement" -trial_license true
 fi
 
 # Configure Service Provider View On
