@@ -101,9 +101,9 @@ while [ "$#" -gt 0 ]; do
         agreement="true"
         ;;
     -l | --license)
-       activation_key="$2"
-       shift
-       ;;
+        activation_key="$2"
+        shift
+        ;;
     *) ;;
     esac
     shift
@@ -140,13 +140,12 @@ if [ "$interactive_install" = "y" ]; then
         fi
         sleep 1
     fi
-else
-    if [ -z "$mariadb_server_install" ]; then
-        mariadb_version_install="y"
-    fi
-    if [ -z "$mariadb_version_install" ]; then
-        mariadb_version_install="10.3"
-    fi
+fi
+if [ -z "$mariadb_server_install" ]; then
+    mariadb_version_install="y"
+fi
+if [ -z "$mariadb_version_install" ]; then
+    mariadb_version_install="10.3"
 fi
 echo ""
 echo "#####################################"
@@ -285,7 +284,7 @@ NET_INTERFACES_WAN=$(ip -4 route get 8.8.8.8 | grep -oP "dev [^[:space:]]+ " | c
 # Add MariaDB 10.3 repository
 ##################################
 
-if [ "$mariadb_server_install" == "y" ]; then
+if [ "$mariadb_server_install" = "y" ]; then
     if [ ! -f /etc/apt/sources.list.d/mariadb.list ]; then
         echo ""
         echo "##########################################"
