@@ -77,6 +77,8 @@ while [ "$#" -gt 0 ]; do
         travis="y"
         release_tiers="testing"
         agreement="true"
+        mariadb_server_install="y"
+        mariadb_version_install="10.3"
         ;;
     -n | --name)
         plesk_name="$2"
@@ -142,7 +144,7 @@ if [ "$interactive_install" = "y" ]; then
     fi
 fi
 if [ -z "$mariadb_server_install" ]; then
-    mariadb_version_install="y"
+    mariadb_server_install="y"
 fi
 if [ -z "$mariadb_version_install" ]; then
     mariadb_version_install="10.3"
@@ -285,21 +287,17 @@ NET_INTERFACES_WAN=$(ip -4 route get 8.8.8.8 | grep -oP "dev [^[:space:]]+ " | c
 ##################################
 
 if [ "$mariadb_server_install" = "y" ]; then
-    if [ ! -f /etc/apt/sources.list.d/mariadb.list ]; then
-        echo ""
-        echo "##########################################"
-        echo " Adding MariaDB $mariadb_version_install repository"
-        echo "##########################################"
-        {
-            wget -qO mariadb_repo_setup https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
-            chmod +x mariadb_repo_setup
-            ./mariadb_repo_setup --mariadb-server-version=$mariadb_version_install --skip-maxscale -y
-            rm mariadb_repo_setup
-            apt-get update -qq
-        } >> /tmp/plesk-install.log 2>&1
-
-    fi
-
+    echo ""
+    echo "##########################################"
+    echo " Adding MariaDB $mariadb_version_install repository"
+    echo "##########################################"
+    {
+        wget -qO mariadb_repo_setup https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
+        chmod +x mariadb_repo_setup
+        ./mariadb_repo_setup --mariadb-server-version=$mariadb_version_install --skip-maxscale -y
+        rm mariadb_repo_setup
+        apt-get update -qq
+    } >> /tmp/plesk-install.log 2>&1
 fi
 
 ##################################
