@@ -1,5 +1,5 @@
-<h1  style="text-align: center">Ubuntu Plesk Server</h1>
-<p  style="text-align: center">
+<h1 align="center">Ubuntu Plesk Server</h1>
+<p  align="center">
 <a href="http://www.apache.org/licenses/LICENSE-2.0"><img src="http://img.shields.io/badge/license-Apache 2-blue.svg" alt="" class="loading" id="image-hash-bc6178aff0e15ee8f4edae603da1dae0507fe3b777dd8805798f27346188a087"></a>
 <a href="https://travis-ci.org/VirtuBox/ubuntu-plesk-server"><img src="https://img.shields.io/travis/VirtuBox/ubuntu-plesk-server" alt="" class="loading" id="image-hash-82e1c6d8511303293d97069a09b0af49d3663e60ba7776ae8a0070d3f5341a53"></a>
 <img src="https://img.shields.io/github/last-commit/VirtuBox/ubuntu-plesk-server" alt="" class="loading" id="image-hash-f064751bd7f01bbca0f077a9287d0d81a8fb4ebecef5bbc4363f37358ae6a9df"></p>

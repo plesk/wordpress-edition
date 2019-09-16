@@ -106,6 +106,10 @@ while [ "$#" -gt 0 ]; do
         activation_key="$2"
         shift
         ;;
+    -m | --mariadb)
+        mariadb_version_install="$2"
+        shift
+        ;;
     *) ;;
     esac
     shift
@@ -165,13 +169,12 @@ export DEBIAN_FRONTEND=noninteractive
 echo "##########################################"
 echo " Updating Packages"
 echo "##########################################"
-if [ "$travis" != "y" ]; then
+if [ -z "$travis" ]; then
     apt-get update -qq
-    apt-get dist-upgrade \
-        --option=Dpkg::options::=--force-confdef \
-        --option=Dpkg::options::=-force-unsafe-io \
-        --option=Dpkg::options::=--force-confold \
-        --assume-yes --quiet
+    apt-get dist-upgrade --option=Dpkg::options::=--force-confmiss \
+    --option=Dpkg::options::=--force-confold \
+    --option=Dpkg::options::=--force-unsafe-io \
+    --assume-yes --quiet
     apt-get autoremove --purge -qq
     apt-get autoclean -qq
 fi
@@ -380,7 +383,7 @@ echo
 
 echo "Starting Plesk Installation"
 if ! { ./plesk-installer install "$release_tiers" --components panel bind fail2ban \
-    l10n pmm mysqlgroup docker repair-kit \
+    l10n pmm mysqlgroup repair-kit \
     roundcube spamassassin postfix dovecot \
     proftpd awstats mod_fcgid webservers git \
     nginx php7.2 php7.3 config-troubleshooter \
