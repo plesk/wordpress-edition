@@ -17,12 +17,6 @@ plesk_email='admin@test.tst'
 plesk_pass='PleskUbuntu123'
 plesk_name='admin'
 
-# Plesk Activation Code - provide proper license for initialization, it will be replaced after cloning
-# leave as null if not providing key
-if [ "$1" = "-i" ]; then
-    activation_key="$2"
-fi
-
 # Plesk UI View - can be set to Service Provider View (spv) or Power User View (puv)
 plesk_ui=spv
 
@@ -47,13 +41,6 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
-# Test to make sure all initialization values are set
-
-if [[ -z "$plesk_email" || -z "$plesk_pass" || -z "$plesk_name" ]]; then
-    echo 'One or more variables are undefined. Please check your initialization values.'
-    exit 1
-fi
-
 readonly plesk_linux_distro=$(lsb_release -is)
 readonly plesk_distro_version=$(lsb_release -sc)
 readonly plesk_distro_id=$(lsb_release -rs)
@@ -70,7 +57,7 @@ echo ""
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
-    -i | --interactive)
+    --interactive)
         interactive_install="y"
         ;;
     --travis)
@@ -102,11 +89,12 @@ while [ "$#" -gt 0 ]; do
     -y | --agreement)
         agreement="true"
         ;;
-    -l | --license)
+    -i | --license)
         activation_key="$2"
         shift
         ;;
     -m | --mariadb)
+        mariadb_server_install="y"
         mariadb_version_install="$2"
         shift
         ;;
@@ -153,6 +141,13 @@ fi
 if [ -z "$mariadb_version_install" ]; then
     mariadb_version_install="10.3"
 fi
+
+# Test to make sure all initialization values are set
+if [[ -z "$plesk_email" || -z "$plesk_pass" || -z "$plesk_name" ]]; then
+    echo 'One or more variables are undefined. Please check your initialization values.'
+    exit 1
+fi
+
 echo ""
 echo "#####################################"
 echo "Starting server setup in 5 seconds"
@@ -171,10 +166,10 @@ echo " Updating Packages"
 echo "##########################################"
 if [ -z "$travis" ]; then
     apt-get update -qq
-    apt-get dist-upgrade --option=Dpkg::options::=--force-confmiss \
+    apt-get --option=Dpkg::options::=--force-confmiss \
     --option=Dpkg::options::=--force-confold \
     --option=Dpkg::options::=--force-unsafe-io \
-    --assume-yes --quiet
+    dist-upgrade --assume-yes --quiet
     apt-get autoremove --purge -qq
     apt-get autoclean -qq
 fi
@@ -539,6 +534,6 @@ else
 fi
 
 echo
-echo "Your Plesk WordPress Edition is complete."
-echo "Thank you for using the WordPress Edition Cookbook"
+echo "Your Ubuntu Plesk Server is ready."
+echo "Give ubuntu-plesk-server a GitHub star : https://github.com/VirtuBox/ubuntu-plesk-server"
 echo
