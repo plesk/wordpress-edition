@@ -386,6 +386,7 @@ if ! { ./plesk-installer install "$release_tiers" --components panel bind fail2b
     imunifyav sslit; } >> /tmp/plesk-install.log 2>&1; then
     echo
     echo "An error occurred! The installation of Plesk failed. Please see logged lines above for error handling!"
+    tail -f 50 /tmp/plesk-install.log | ccze -A
     exit 1
 fi
 #./plesk-installer --select-product-id plesk --select-release-latest --installation-type Recommended
