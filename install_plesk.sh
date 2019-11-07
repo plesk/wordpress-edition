@@ -41,6 +41,14 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
+if {
+    plesk version >/dev/null 2>&1
+}; then
+    readonly plesk_installed="y"
+else
+    plesk_installed=""
+fi
+
 readonly plesk_linux_distro=$(lsb_release -is)
 readonly plesk_distro_version=$(lsb_release -sc)
 readonly plesk_distro_id=$(lsb_release -rs)
@@ -135,11 +143,13 @@ if [ "$interactive_install" = "y" ]; then
         sleep 1
     fi
 fi
-if [ -z "$mariadb_server_install" ]; then
-    mariadb_server_install="y"
-fi
-if [ -z "$mariadb_version_install" ]; then
-    mariadb_version_install="10.3"
+if [ -z "$plesk_installed" ]; then
+    if [ -z "$mariadb_server_install" ]; then
+        mariadb_server_install="y"
+    fi
+    if [ -z "$mariadb_version_install" ]; then
+        mariadb_version_install="10.3"
+    fi
 fi
 
 # Test to make sure all initialization values are set
@@ -167,9 +177,9 @@ echo "##########################################"
 if [ -z "$travis" ]; then
     apt-get update -qq
     apt-get --option=Dpkg::options::=--force-confmiss \
-    --option=Dpkg::options::=--force-confold \
-    --option=Dpkg::options::=--force-unsafe-io \
-    dist-upgrade --assume-yes --quiet
+        --option=Dpkg::options::=--force-confold \
+        --option=Dpkg::options::=--force-unsafe-io \
+        dist-upgrade --assume-yes --quiet
     apt-get autoremove --purge -qq
     apt-get autoclean -qq
 fi
@@ -221,8 +231,6 @@ CURRENT_SSH_PORT=$(grep "Port" /etc/ssh/sshd_config | awk -F " " '{print $2}')
 # download secure sshd_config
 cp -f "$HOME/ubuntu-nginx-web-server/etc/ssh/sshd_config" /etc/ssh/sshd_config
 
-iptables -I INPUT -p tcp --dport "$CURRENT_SSH_PORT" -j ACCEPT
-
 if [ "$CURRENT_SSH_PORT" != "22" ]; then
     # change ssh default port
     sed -i "s/Port 22/Port $CURRENT_SSH_PORT/" /etc/ssh/sshd_config
@@ -244,26 +252,26 @@ if [ ! -f /etc/sysctl.d/60-plesk-tweaks.conf ]; then
         wget -qO /etc/sysctl.d/60-plesk-tweaks.conf \
             https://raw.githubusercontent.com/WordOps/WordOps/master/wo/cli/templates/sysctl.mustache
         if [ "$plesk_distro_version" = "bionic" ] || [ "$plesk_distro_version" = "disco" ] || [ "$plesk_distro_version" = "buster" ]; then
-            modprobe tcp_bbr && echo 'tcp_bbr' >> /etc/modules-load.d/bbr.conf
-            echo -e '\nnet.ipv4.tcp_congestion_control = bbr\nnet.ipv4.tcp_notsent_lowat = 16384' >> /etc/sysctl.d/60-plesk-tweaks.conf
+            modprobe tcp_bbr && echo 'tcp_bbr' >>/etc/modules-load.d/bbr.conf
+            echo -e '\nnet.ipv4.tcp_congestion_control = bbr\nnet.ipv4.tcp_notsent_lowat = 16384' >>/etc/sysctl.d/60-plesk-tweaks.conf
         else
-            modprobe tcp_htcp && echo 'tcp_htcp' >> /etc/modules-load.d/htcp.conf
-            echo 'net.ipv4.tcp_congestion_control = htcp' >> /etc/sysctl.d/60-plesk-tweaks.conf
+            modprobe tcp_htcp && echo 'tcp_htcp' >>/etc/modules-load.d/htcp.conf
+            echo 'net.ipv4.tcp_congestion_control = htcp' >>/etc/sysctl.d/60-plesk-tweaks.conf
         fi
         # apply sysctl tweaks
         sysctl -eq -p /etc/sysctl.d/60-plesk-tweaks.conf
     fi
 fi
 
-if [ ! -x /opt/wo-kernel.sh ]; then
+if [ ! -x /opt/kernel-tweak.sh ]; then
     {
         # download and setup wo-kernel systemd service to apply kernel tweaks for netdata and redis on server startup
         wget -qO /opt/kernel-tweak.sh https://raw.githubusercontent.com/VirtuBox/kernel-tweak/master/kernel-tweak.sh
         chmod +x /opt/kernel-tweak.sh
         wget -qO /lib/systemd/system/kernel-tweak.service https://raw.githubusercontent.com/VirtuBox/kernel-tweak/master/kernel-tweak.service
-        systemctl enable wo-kernel.service
-        systemctl start wo-kernel.service
-    } >> /tmp/plesk-install.log 2>&1
+        systemctl enable kernel-tweak.service
+        systemctl start kernel-tweak.service
+    } >>/tmp/plesk-install.log 2>&1
 fi
 
 # additional systcl configuration with network interface name
@@ -278,7 +286,7 @@ NET_INTERFACES_WAN=$(ip -4 route get 8.8.8.8 | grep -oP "dev [^[:space:]]+ " | c
     echo "net.ipv6.conf.$NET_INTERFACES_WAN.accept_ra = 0"
     echo "net.ipv6.conf.$NET_INTERFACES_WAN.autoconf = 0"
     echo "net.ipv6.conf.$NET_INTERFACES_WAN.accept_ra_defrtr = 0"
-} >> /etc/sysctl.d/60-ubuntu-nginx-web-server.conf
+} >>/etc/sysctl.d/60-ubuntu-nginx-web-server.conf
 
 ##################################
 # Add MariaDB 10.3 repository
@@ -295,7 +303,7 @@ if [ "$mariadb_server_install" = "y" ]; then
         ./mariadb_repo_setup --mariadb-server-version=$mariadb_version_install --skip-maxscale -y
         rm mariadb_repo_setup
         apt-get update -qq
-    } >> /tmp/plesk-install.log 2>&1
+    } >>/tmp/plesk-install.log 2>&1
 fi
 
 ##################################
@@ -320,10 +328,10 @@ if [ "$mariadb_server_install" = "y" ]; then
         apt-get install -qq mariadb-server # -qq implies -y --force-yes
         # mysql_secure_installation non-interactive way
         # remove anonymous users
-        mysql -e "DROP USER ''@'localhost'" > /dev/null 2>&1
-        mysql -e "DROP USER ''@'$(hostname)'" > /dev/null 2>&1
+        mysql -e "DROP USER ''@'localhost'" >/dev/null 2>&1
+        mysql -e "DROP USER ''@'$(hostname)'" >/dev/null 2>&1
         # remove test database
-        mysql -e "DROP DATABASE test" > /dev/null 2>&1
+        mysql -e "DROP DATABASE test" >/dev/null 2>&1
         # flush privileges
         mysql -e "FLUSH PRIVILEGES"
     fi
@@ -349,7 +357,7 @@ if [ "$mariadb_server_install" = "y" ]; then
     mv /var/lib/mysql/ib_logfile1 /var/lib/mysql/ib_logfile1.bak
 
     # increase mariadb open_files_limit
-    echo -e '[Service]\nLimitNOFILE=500000' > /etc/systemd/system/mariadb.service.d/limits.conf
+    echo -e '[Service]\nLimitNOFILE=500000' >/etc/systemd/system/mariadb.service.d/limits.conf
 
     # reload daemon
     systemctl daemon-reload
@@ -363,95 +371,95 @@ fi
 #########################################################
 
 # Download Plesk AutoInstaller
-
-echo "Downloading Plesk Auto-Installer"
-wget -O plesk-installer https://installer.plesk.com/plesk-installer
-echo
-
-# Make Installed Executable
-
-echo "Making Plesk Auto-Installer Executable"
-chmod +x ./plesk-installer
-echo
-
-# Install Plesk testing with Required Components
-
-echo "Starting Plesk Installation"
-if ! { ./plesk-installer install "$release_tiers" --components panel bind fail2ban \
-    l10n pmm mysqlgroup repair-kit \
-    roundcube spamassassin postfix dovecot \
-    proftpd awstats mod_fcgid webservers git \
-    nginx php7.2 php7.3 config-troubleshooter \
-    psa-firewall cloudflare wp-toolkit letsencrypt \
-    imunifyav sslit; } >> /tmp/plesk-install.log 2>&1; then
+if [ -z "$plesk_installed" ]; then
+    echo "Downloading Plesk Auto-Installer"
+    wget -O plesk-installer https://installer.plesk.com/plesk-installer
     echo
-    echo "An error occurred! The installation of Plesk failed. Please see logged lines above for error handling!"
-    tail -f 50 /tmp/plesk-install.log | ccze -A
-    exit 1
+
+    # Make Installed Executable
+
+    echo "Making Plesk Auto-Installer Executable"
+    chmod +x ./plesk-installer
+    echo
+
+    # Install Plesk testing with Required Components
+
+    echo "Starting Plesk Installation"
+    if ! { ./plesk-installer install PLESK_18_0_20 --components panel bind fail2ban \
+        l10n pmm mysqlgroup repair-kit \
+        roundcube spamassassin postfix dovecot \
+        proftpd awstats mod_fcgid webservers git \
+        nginx php7.2 php7.3 config-troubleshooter \
+        psa-firewall cloudflare wp-toolkit letsencrypt \
+        imunifyav sslit; } >>/tmp/plesk-install.log 2>&1; then
+        echo
+        echo "An error occurred! The installation of Plesk failed. Please see logged lines above for error handling!"
+        tail -f 50 /tmp/plesk-install.log | ccze -A
+        exit 1
+    fi
+    #./plesk-installer --select-product-id plesk --select-release-latest --installation-type Recommended
+
+    if [ "$plesk_kvm_detec" = "kvm" ]; then
+        # Enable VPS Optimized Mode
+        echo "Enable VPS Optimized Mode"
+        plesk bin vps_optimized --turn-on >>/tmp/plesk-install.log 2>&1
+        echo
+    fi
+
+    # If Ruby and NodeJS are needed then run install Plesk using the following command:
+    # ./plesk-installer install plesk --preset Recommended --with fail2ban modsecurity spamassassin mailman psa-firewall pmm health-monitor passenger ruby nodejs gems-preecho
+    echo ""
+    echo ""
+
+    # Initalize Plesk before Additional Configuration
+    # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/init_conf-server-configuration.37843/
+
+    # Install Plesk Activation Key if provided
+    # https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/license-license-keys.71029/
+
+    export PSA_PASSWORD=$plesk_pass
+
+    if [ -n "$activation_key" ]; then
+        echo "Starting initialization process of your Plesk server"
+        /usr/sbin/plesk bin init_conf --init -email "$plesk_email" -passwd "" -name "$plesk_name" -license_agreed "$agreement"
+        echo "Installing Plesk Activation Code"
+        /usr/sbin/plesk bin license --install "$activation_key"
+        echo
+    else
+        echo "Starting initialization process of your Plesk server"
+        /usr/sbin/plesk bin init_conf --init -email "$plesk_email" -passwd "" -name "$plesk_name" -license_agreed "$agreement" -trial_license true
+    fi
+
+    # Configure Service Provider View On
+
+    if [ "$plesk_ui" = "spv" ]; then
+        echo "Setting to Service Provider View"
+        /usr/sbin/plesk bin poweruser --off
+        echo
+    else
+        echo "Setting to Power user View"
+        /usr/sbin/plesk bin poweruser --on
+        echo
+    fi
+
+    # Make sure Plesk UI and Plesk Update ports are allowed
+
+    echo "Setting Firewall to allow proper ports."
+    {
+        iptables -I INPUT -p tcp --dport 21 -j ACCEPT
+        iptables -I INPUT -p tcp --dport 22 -j ACCEPT
+        iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+        iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+        iptables -I INPUT -p tcp --dport 465 -j ACCEPT
+        iptables -I INPUT -p tcp --dport 993 -j ACCEPT
+        iptables -I INPUT -p tcp --dport 995 -j ACCEPT
+        iptables -I INPUT -p tcp --dport 8443 -j ACCEPT
+        iptables -I INPUT -p tcp --dport 8447 -j ACCEPT
+        iptables -I INPUT -p tcp --dport 8880 -j ACCEPT
+    } >>/tmp/plesk-install.log 2>&1
+
+    echo
 fi
-#./plesk-installer --select-product-id plesk --select-release-latest --installation-type Recommended
-
-if [ "$plesk_kvm_detec" = "kvm" ]; then
-    # Enable VPS Optimized Mode
-    echo "Enable VPS Optimized Mode"
-    plesk bin vps_optimized --turn-on >> /tmp/plesk-install.log 2>&1
-    echo
-fi
-
-# If Ruby and NodeJS are needed then run install Plesk using the following command:
-# ./plesk-installer install plesk --preset Recommended --with fail2ban modsecurity spamassassin mailman psa-firewall pmm health-monitor passenger ruby nodejs gems-preecho
-echo ""
-echo ""
-
-# Initalize Plesk before Additional Configuration
-# https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/init_conf-server-configuration.37843/
-
-# Install Plesk Activation Key if provided
-# https://docs.plesk.com/en-US/onyx/cli-linux/using-command-line-utilities/license-license-keys.71029/
-
-export PSA_PASSWORD=$plesk_pass
-
-if [ -n "$activation_key" ]; then
-    echo "Starting initialization process of your Plesk server"
-    /usr/sbin/plesk bin init_conf --init -email "$plesk_email" -passwd "" -name "$plesk_name" -license_agreed "$agreement"
-    echo "Installing Plesk Activation Code"
-    /usr/sbin/plesk bin license --install "$activation_key"
-    echo
-else
-    echo "Starting initialization process of your Plesk server"
-    /usr/sbin/plesk bin init_conf --init -email "$plesk_email" -passwd "" -name "$plesk_name" -license_agreed "$agreement" -trial_license true
-fi
-
-# Configure Service Provider View On
-
-if [ "$plesk_ui" = "spv" ]; then
-    echo "Setting to Service Provider View"
-    /usr/sbin/plesk bin poweruser --off
-    echo
-else
-    echo "Setting to Power user View"
-    /usr/sbin/plesk bin poweruser --on
-    echo
-fi
-
-# Make sure Plesk UI and Plesk Update ports are allowed
-
-echo "Setting Firewall to allow proper ports."
-{
-    iptables -I INPUT -p tcp --dport 21 -j ACCEPT
-    iptables -I INPUT -p tcp --dport 22 -j ACCEPT
-    iptables -I INPUT -p tcp --dport 80 -j ACCEPT
-    iptables -I INPUT -p tcp --dport 443 -j ACCEPT
-    iptables -I INPUT -p tcp --dport 465 -j ACCEPT
-    iptables -I INPUT -p tcp --dport 993 -j ACCEPT
-    iptables -I INPUT -p tcp --dport 995 -j ACCEPT
-    iptables -I INPUT -p tcp --dport 8443 -j ACCEPT
-    iptables -I INPUT -p tcp --dport 8447 -j ACCEPT
-    iptables -I INPUT -p tcp --dport 8880 -j ACCEPT
-} >> /tmp/plesk-install.log 2>&1
-
-echo
-
 # Enable Modsecurity
 # https://docs.plesk.com/en-US/onyx/administrator-guide/server-administration/web-application-firewall-modsecurity.73383/
 
