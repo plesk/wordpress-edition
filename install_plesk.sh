@@ -385,7 +385,7 @@ if [ -z "$plesk_installed" ]; then
     # Install Plesk testing with Required Components
 
     echo "Starting Plesk Installation"
-    if ! { ./plesk-installer install PLESK_18_0_20 --components panel bind fail2ban \
+    if ! { ./plesk-installer install release --components panel bind fail2ban \
         l10n pmm mysqlgroup repair-kit \
         roundcube spamassassin postfix dovecot \
         proftpd awstats mod_fcgid webservers git \
