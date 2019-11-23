@@ -142,6 +142,14 @@ if [ "$interactive_install" = "y" ]; then
         fi
         sleep 1
     fi
+    if [ -z "$agreement" ]; then
+        echo -e "Do you agree with Plesk license terms ? (See : https://www.plesk.com/legal/)"
+        while [[ $agreement != "y" && $agreement != "n" ]]; do
+            echo -e "Select an option [y/n]: "
+            read -r agreement
+        done
+    fi
+
 fi
 if [ -z "$plesk_installed" ]; then
     if [ -z "$mariadb_server_install" ]; then
@@ -153,7 +161,7 @@ if [ -z "$plesk_installed" ]; then
 fi
 
 # Test to make sure all initialization values are set
-if [[ -z "$plesk_email" || -z "$plesk_pass" || -z "$plesk_name" ]]; then
+if [[ -z "$plesk_email" || -z "$plesk_pass" || -z "$plesk_name" || -z "$agreement" ]]; then
     echo 'One or more variables are undefined. Please check your initialization values.'
     exit 1
 fi

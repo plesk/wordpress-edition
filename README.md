@@ -5,15 +5,31 @@
 <img src="https://img.shields.io/github/last-commit/VirtuBox/ubuntu-plesk-server" alt="" class="loading" id="image-hash-f064751bd7f01bbca0f077a9287d0d81a8fb4ebecef5bbc4363f37358ae6a9df"></p>
 </p>
 
-This repository contains all you need to build and customize your personal preconfigured WordPress Server solution with Plesk. The included whitepaper describes the solution in detail and highlights why you should offer it to your customers.
+This repository contains a bash script to automate Plesk Obsidian deployment on Ubuntu.
 
 ## Description
 
-  Here at Plesk we strive to Simpify the Lives of Web Professionals. This includes our Partners. This cookbook will install and configure Plesk Core, Modules and Bundle Extensions. It will also enable and configure security features and prepare your VM to be used as a VM template.
+The script settings can be defined in an interactive way by running the script with the flag `--interactive`, or fully non-interactive with arguments like `--mariadb 10.3` to define MariaDB-server version.
 
 ## Requirements
 
 * Ubuntu 18.04 LTS
 * Ubuntu 16.04 LTS
 
-## Deploying Plesk with WordPress Edition Cookbook
+## Deploying Plesk
+
+### Interactive install
+
+Interactive installation is available with argument `--interactive`
+
+```bash
+bash <(wget -O - vtb.cx/plesk || curl -sL vtb.cx/plesk) --interactive
+```
+
+### Custom install
+
+Default setup with MariaDB 10.3
+
+```bash
+bash <(wget -O - vtb.cx/plesk || curl -sL vtb.cx/plesk) -y
+```
