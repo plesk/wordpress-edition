@@ -14,7 +14,7 @@
 # Edit variables for Plesk pre-configuration
 
 plesk_email='admin@test.tst'
-plesk_pass='PleskUbuntu123'
+plesk_pass='PleskUbuntu123@@'
 plesk_name='admin'
 
 # Plesk UI View - can be set to Service Provider View (spv) or Power User View (puv)
@@ -259,7 +259,7 @@ if [ ! -f /etc/sysctl.d/60-plesk-tweaks.conf ]; then
     if [ "$plesk_srv_arch" = "x86_64" ]; then
         wget -qO /etc/sysctl.d/60-plesk-tweaks.conf \
             https://raw.githubusercontent.com/WordOps/WordOps/master/wo/cli/templates/sysctl.mustache
-        if [ "$plesk_distro_version" = "bionic" ] || [ "$plesk_distro_version" = "disco" ] || [ "$plesk_distro_version" = "buster" ]; then
+        if [ "$plesk_distro_version" = "bionic" ] || [ "$plesk_distro_version" = "focal" ] || [ "$plesk_distro_version" = "buster" ]; then
             modprobe tcp_bbr && echo 'tcp_bbr' >>/etc/modules-load.d/bbr.conf
             echo -e '\nnet.ipv4.tcp_congestion_control = bbr\nnet.ipv4.tcp_notsent_lowat = 16384' >>/etc/sysctl.d/60-plesk-tweaks.conf
         else
