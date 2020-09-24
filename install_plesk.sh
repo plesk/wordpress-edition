@@ -397,7 +397,7 @@ if [ -z "$plesk_installed" ]; then
         l10n pmm mysqlgroup repair-kit \
         roundcube spamassassin postfix dovecot \
         proftpd awstats mod_fcgid webservers git \
-        nginx php7.2 php7.3 config-troubleshooter \
+        nginx php7.2 php7.3 php7.4 config-troubleshooter \
         psa-firewall wp-toolkit letsencrypt \
         imunifyav sslit; } >>/tmp/plesk-install.log 2>&1; then
         echo

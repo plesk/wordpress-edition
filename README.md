@@ -13,6 +13,7 @@ The script settings can be defined in an interactive way by running the script w
 
 ## Requirements
 
+* Ubuntu 20.04 LTS
 * Ubuntu 18.04 LTS
 * Ubuntu 16.04 LTS
 
