@@ -398,7 +398,7 @@ if [ -z "$plesk_installed" ]; then
         roundcube spamassassin postfix dovecot \
         proftpd awstats mod_fcgid webservers git \
         nginx php7.2 php7.3 config-troubleshooter \
-        psa-firewall cloudflare wp-toolkit letsencrypt \
+        psa-firewall wp-toolkit letsencrypt \
         imunifyav sslit; } >>/tmp/plesk-install.log 2>&1; then
         echo
         echo "An error occurred! The installation of Plesk failed. Please see logged lines above for error handling!"
