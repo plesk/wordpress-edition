@@ -73,7 +73,7 @@ while [ "$#" -gt 0 ]; do
         release_tiers="testing"
         agreement="true"
         mariadb_server_install="y"
-        mariadb_version_install="10.3"
+        mariadb_version_install="10.5"
         ;;
     -n | --name)
         plesk_name="$2"
@@ -134,9 +134,9 @@ if [ "$interactive_install" = "y" ]; then
         done
         if [[ "$mariadb_server_install" == "y" ]]; then
             echo ""
-            echo "What version of MariaDB Client/Server do you want to install, 10.1, 10.2 or 10.3 ?"
-            while [[ $mariadb_version_install != "10.1" && $mariadb_version_install != "10.2" && $mariadb_version_install != "10.3" ]]; do
-                echo -e "Select an option [10.1 / 10.2 / 10.3]: "
+            echo "What version of MariaDB Client/Server do you want to install, 10.2, 10.3 or 10.5 ?"
+            while [[ $mariadb_version_install != "10.2" && $mariadb_version_install != "10.3" && $mariadb_version_install != "10.5" ]]; do
+                echo -e "Select an option [10.2 / 10.3 / 10.5]: "
                 read -r mariadb_version_install
             done
         fi
@@ -325,11 +325,12 @@ if [ "$mariadb_server_install" = "y" ]; then
         echo "##########################################"
         echo " Installing MariaDB server $mariadb_version_install"
         echo "##########################################"
-
-        # generate random password
-        MYSQL_ROOT_PASS=""
-        echo "mariadb-server-${mariadb_version_install} mysql-server/root_password password ${MYSQL_ROOT_PASS}" | debconf-set-selections
-        echo "mariadb-server-${mariadb_version_install} mysql-server/root_password_again password ${MYSQL_ROOT_PASS}" | debconf-set-selections
+        if [ "$mariadb_version_install" = "10.2" ] || [ "$mariadb_version_install" = "10.3" ]; then
+            # generate random password
+            MYSQL_ROOT_PASS=""
+            echo "mariadb-server-${mariadb_version_install} mysql-server/root_password password ${MYSQL_ROOT_PASS}" | debconf-set-selections
+            echo "mariadb-server-${mariadb_version_install} mysql-server/root_password_again password ${MYSQL_ROOT_PASS}" | debconf-set-selections
+        fi
         # debconf-set-selections <<<"mariadb-server-${mariadb_version_install} mysql-server/root_password password ${MYSQL_ROOT_PASS}"
         # debconf-set-selections <<<"mariadb-server-${mariadb_version_install} mysql-server/root_password_again password ${MYSQL_ROOT_PASS}"
         # # install mariadb server
@@ -350,28 +351,30 @@ fi
 ##################################
 
 if [ "$mariadb_server_install" = "y" ]; then
-    echo "##########################################"
-    echo " Optimizing MariaDB configuration"
-    echo "##########################################"
+    if [ "$mariadb_version_install" = "10.2" ] || [ "$mariadb_version_install" = "10.3" ]; then
+        echo "##########################################"
+        echo " Optimizing MariaDB configuration"
+        echo "##########################################"
 
-    cp /etc/mysql/my.cnf /etc/mysql/my.cnf.bak
-    cp -f "$HOME/ubuntu-nginx-web-server/etc/mysql/my.cnf" /etc/mysql/my.cnf
+        cp /etc/mysql/my.cnf /etc/mysql/my.cnf.bak
+        cp -f "$HOME/ubuntu-nginx-web-server/etc/mysql/my.cnf" /etc/mysql/my.cnf
 
-    # stop mysql service to apply new InnoDB log file size
-    service mysql stop
+        # stop mysql service to apply new InnoDB log file size
+        service mysql stop
 
-    # mv previous log file
-    mv /var/lib/mysql/ib_logfile0 /var/lib/mysql/ib_logfile0.bak
-    mv /var/lib/mysql/ib_logfile1 /var/lib/mysql/ib_logfile1.bak
+        # mv previous log file
+        mv /var/lib/mysql/ib_logfile0 /var/lib/mysql/ib_logfile0.bak
+        mv /var/lib/mysql/ib_logfile1 /var/lib/mysql/ib_logfile1.bak
 
-    # increase mariadb open_files_limit
-    echo -e '[Service]\nLimitNOFILE=500000' >/etc/systemd/system/mariadb.service.d/limits.conf
+        # increase mariadb open_files_limit
+        echo -e '[Service]\nLimitNOFILE=500000' >/etc/systemd/system/mariadb.service.d/limits.conf
 
-    # reload daemon
-    systemctl daemon-reload
+        # reload daemon
+        systemctl daemon-reload
 
-    # restart mysql
-    service mysql start
+        # restart mysql
+        service mysql start
+    fi
 
 fi
 
