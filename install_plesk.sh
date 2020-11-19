@@ -156,7 +156,7 @@ if [ -z "$plesk_installed" ]; then
         mariadb_server_install="y"
     fi
     if [ -z "$mariadb_version_install" ]; then
-        mariadb_version_install="10.3"
+        mariadb_version_install="10.5"
     fi
 fi
 
